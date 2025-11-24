@@ -1,0 +1,155 @@
+diff --git a/backend/feh_sds_autobuilder.py b/backend/feh_sds_autobuilder.py
+index 1111111..2222222 100644
+--- a/backend/feh_sds_autobuilder.py
++++ b/backend/feh_sds_autobuilder.py
+@@ -1,6 +1,22 @@
+ import random
+ import itertools
+ import math
++import csv
++import os
++from collections import Counter
++
++# -------------------------------------------------------------------
++# NEW: Brigade-based synergy engine
++# -------------------------------------------------------------------
++
++def load_brigade_stats_from_csv(csv_paths):
++    """Reads brigade CSVs and returns (U, C, max_usage).
++       U[u] = number of brigades containing unit u
++       C[(u,v)] = number of brigades where u and v co-occur
++    """
++    U = Counter()
++    C = Counter()
++
++    for path in csv_paths:
++        if not os.path.exists(path):
++            continue
++
++        with open(path, newline='', encoding='utf-8', errors='replace') as f:
++            rows = list(csv.reader(f))
++
++        # Skip first 3 header rows: then each 4 rows = one brigade
++        rows = rows[3:]
++        for i in range(0, len(rows), 4):
++            brigade = rows[i:i+4]
++            units = []
++            for r in brigade:
++                # F,H,J,L,N (0-based 5,7,9,11,13)
++                for idx in (5, 7, 9, 11, 13):
++                    if idx < len(r):
++                        name = r[idx].strip()
++                        if name:
++                            units.append(name)
++
++            if not units:
++                continue
++
++            uniq = list(dict.fromkeys(units))
++            for u in uniq:
++                U[u] += 1
++            for a, b in itertools.combinations(sorted(uniq), 2):
++                C[(a, b)] += 1
++                C[(b, a)] += 1
++
++    max_usage = max(U.values()) if U else 1
++    return dict(U), dict(C), max_usage
++
++
++def synergy_S(U, C, u, v):
++    """Normalized synergy: S = 2*C / (U(u)+U(v))."""
++    cuv = C.get((u, v), 0)
++    uu = U.get(u, 0)
++    vv = U.get(v, 0)
++    if (uu + vv) == 0:
++        return 0.0
++    return 2.0 * cuv / (uu + vv)
++
++
++def final_synergy_score(U, C, max_usage, u, v, usage_weight=0.25):
++    """Weighted synergy combining normalized co-occurrence with usage bias."""
++    base = synergy_S(U, C, u, v)
++    usage_factor = (U.get(u, 0) + U.get(v, 0)) / (2.0 * max_usage)
++    return base * (1.0 + usage_weight * usage_factor)
++
++
++def team_candidate_score(candidate, team_units, U, C, max_usage, usage_weight=0.25):
++    """Team-level synergy score for selecting the best next unit."""
++    if not team_units:
++        # fallback: usage-based
++        return U.get(candidate, 0) / float(max_usage or 1)
++    total = 0.0
++    for m in team_units:
++        total += final_synergy_score(U, C, max_usage, candidate, m, usage_weight)
++    return total
++
+ # -------------------------------------------------------------------
+ # Existing FEH Team Builder class
+ # -------------------------------------------------------------------
+@@ -250,6 +316,36 @@ class FEHTeamBuilder:
+         return score
+ 
+ 
++    # -------------------------------------------------------------------
++    # NEW: synergy wrapper to pick best-fit unit using CSV brigade stats
++    # -------------------------------------------------------------------
++    def choose_best_unit_with_synergy(self, candidates, team, U, C, max_usage,
++                                      usage_weight=0.25):
++        """
++        Replacement scoring step: pick the best candidate based on
++        CSV-derived synergy + existing conditional synergy.
++        """
++        best = None
++        best_score = -1e18
++
++        for unit in candidates:
++            # CSV synergy component
++            s_csv = team_candidate_score(unit, team, U, C, max_usage, usage_weight)
++
++            # existing conditional synergy fallback
++            s_conditional = self.calculate_conditional_synergy(unit, team)
++
++            # combine them (CSV synergy dominates)
++            combined = 1.5 * s_csv + 0.5 * s_conditional
++
++            if combined > best_score:
++                best_score = combined
++                best = unit
++
++        return best
++
++
+     def build_multiple_teams(self, csv_paths=None):
+         """
+         Core entry point used by the API.
+@@ -260,6 +356,16 @@ class FEHTeamBuilder:
+         # Build from CSVs if provided
+         if csv_paths is None:
+             csv_paths = []
++
++        # NEW: build brigade-level synergy stats (U, C)
++        U, C, max_usage = load_brigade_stats_from_csv(tuple(csv_paths))
++        usage_weight = 0.25  # tuneable
++
+         # Copy pool of all units
+         pool = set(self.all_units)
+ 
+@@ -310,7 +416,17 @@ class FEHTeamBuilder:
+                     continue
+ 
+                 # Choose best candidate for this team
+-                best = max(valid_candidates, key=lambda u: self.calculate_conditional_synergy(u, current_team))
++                # NEW: use synergy-aware selection
++                best = self.choose_best_unit_with_synergy(
++                    valid_candidates,
++                    current_team,
++                    U, C, max_usage,
++                    usage_weight=usage_weight
++                )
++
++                if best is None:
++                    continue
++
+                 teams[t].append(best)
+                 pool.remove(best)
+ 
