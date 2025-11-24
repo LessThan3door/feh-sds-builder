@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: feh-team-generator
+    env: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    branch: main
