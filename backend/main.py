@@ -10,6 +10,17 @@ from backend.feh_sds_autobuilder import generate_fe_teams
 
 app = FastAPI(title="FEH Team Generator API")
 
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
+import os
+
+app.mount("/frontend/static", StaticFiles(directory="frontend/static"), name="static")
+
+@app.get("/")
+def serve_index():
+    return FileResponse("frontend/index.html")
+
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
