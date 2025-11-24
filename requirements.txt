@@ -4,3 +4,4 @@ pydantic
 pandas
 numpy
 scipy
+pydantic==1.10.13
