@@ -1,40 +1,46 @@
 # backend/feh_sds_autobuilder.py
-import os
-import importlib.util
-import importlib.machinery
+
 from typing import Dict, Any, List
 
-# Path to the original script you uploaded (leave as-is)
-USER_SCRIPT_PATH = "/mnt/data/FEH SDS Autobuilder.py"
+# IMPORTANT:
+# Your real script must exist in the same folder:
+# backend/FEH_SDS_Autobuilder.py
+#
+# And the filename MUST NOT contain spaces.
+#
+# Final structure:
+#   backend/
+#       feh_sds_autobuilder.py     ← this adapter
+#       FEH_SDS_Autobuilder.py     ← your real script (renamed)
 
-_loaded = None
 
-def _load_user_module():
-    global _loaded
-    if _loaded is not None:
-        return _loaded
-    if not os.path.exists(USER_SCRIPT_PATH):
-        raise FileNotFoundError(f"Could not find user script at {USER_SCRIPT_PATH}")
-    loader = importlib.machinery.SourceFileLoader("user_autobuilder", USER_SCRIPT_PATH)
-    spec = importlib.util.spec_from_loader(loader.name, loader)
-    mod = importlib.util.module_from_spec(spec)
-    loader.exec_module(mod)
-    _loaded = mod
-    return mod
+# Import your real FEH SDS builder class
+from backend.FEH_SDS_Autobuilder import FEHTeamBuilder
+
 
 def generate_fe_teams(payload: Dict[str, Any]) -> List[Dict[str, Any]]:
     """
-    Adapter that calls the FEHTeamBuilder from the user's script.
-    Expects the payload shape your frontend sends.
-    Returns [{'team': [...], 'captain_skill': None}, ...]
+    Adapter that calls the FEHTeamBuilder from the user's actual script.
+
+    Expects the payload shape sent by the frontend:
+      {
+        "available_units": [...],
+        "forbidden_pairs": [...],
+        "required_pairs": [...],
+        "seed_units": [...],
+        "must_use_units": [...],
+        "excluded_units_per_team": [...],
+        "csv_paths": [...]
+      }
+
+    Returns:
+      [
+         {"team": [...], "captain_skill": None},
+         ...
+      ]
     """
-    mod = _load_user_module()
 
-    if not hasattr(mod, "FEHTeamBuilder"):
-        raise RuntimeError("User script does not define FEHTeamBuilder")
-
-    FEHTeamBuilder = getattr(mod, "FEHTeamBuilder")
-
+    # Extract fields from payload
     available_units = payload.get("available_units", [])
     forbidden_pairs = payload.get("forbidden_pairs", [])
     required_pairs = payload.get("required_pairs", [])
@@ -43,36 +49,30 @@ def generate_fe_teams(payload: Dict[str, Any]) -> List[Dict[str, Any]]:
     excluded_units_per_team = payload.get("excluded_units_per_team", [[], [], [], []])
     csv_paths = payload.get("csv_paths", [])
 
-    # normalize excluded -> sets if needed by user code
-    excluded_sets = [set(x) for x in excluded_units_per_team]
+    # Convert excluded lists to sets
+    excluded_sets = [set(team) for team in excluded_units_per_team]
 
-    # instantiate builder (adjust constructor args if your class uses different names)
-    # many user scripts accept csv_paths and skip_header_rows; adapt if necessary
-    builder = FEHTeamBuilder(csv_paths=csv_paths) if "csv_paths" in FEHTeamBuilder.__init__.__code__.co_varnames else FEHTeamBuilder()
+    # Initialize your real builder
+    # (Your script supports csv_paths and skip_header_rows)
+    builder = FEHTeamBuilder(csv_paths=csv_paths, skip_header_rows=3)
 
-    # Call the user's builder method (adjust name if different)
-    if hasattr(builder, "build_multiple_teams"):
-        teams_raw = builder.build_multiple_teams(
-            available_units=available_units,
-            forbidden_pairs=forbidden_pairs,
-            required_pairs=required_pairs,
-            seed_units_per_team=seed_units,
-            must_use_units=must_use_units,
-            excluded_units_per_team=excluded_sets,
-            csv_paths=csv_paths
-        )
-    else:
-        # fallback: try common function name on module
-        for fn_name in ("generate_fe_teams", "generate_teams", "build_teams"):
-            fn = getattr(mod, fn_name, None)
-            if callable(fn):
-                teams_raw = fn(payload)
-                break
-        else:
-            raise RuntimeError("Could not find a callable to generate teams in user script")
+    # Call your real generation logic
+    teams_raw = builder.build_multiple_teams(
+        available_units=available_units,
+        forbidden_pairs=forbidden_pairs,
+        required_pairs=required_pairs,
+        seed_units_per_team=seed_units,
+        excluded_units_per_team=excluded_sets,
+        required_units_per_team=[[] for _ in range(4)],
+        must_use_units=must_use_units,
+    )
 
-    # normalize output
-    out = []
-    for t in teams_raw:
-        out.append({"team": list(t), "captain_skill": None})
-    return out
+    # Normalize output for the frontend
+    formatted = []
+    for team in teams_raw:
+        formatted.append({
+            "team": list(team),
+            "captain_skill": None
+        })
+
+    return formatted
