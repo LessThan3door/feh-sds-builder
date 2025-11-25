@@ -288,8 +288,14 @@ class FEHTeamBuilder:
                     else:
                         score = self.unit_counts.get(unit, 0)
                     
-                    if score > best_score:
-                        best_score = score
+                    # CRITICAL: When teams are empty (score based on unit_counts), 
+                    # prefer teams with fewer units to spread captains
+                    # This prevents all top units going to Team 1
+                    team_size_penalty = len(teams[team_idx]) * 0.0001  # Very small penalty
+                    adjusted_score = score - team_size_penalty
+                    
+                    if adjusted_score > best_score:
+                        best_score = adjusted_score
                         best_placement = (team_idx, unit, required_partner)
             
             if best_placement:
