@@ -69,9 +69,14 @@ def generate(req: GenerateRequest):
         
         # Use default CSV if exists and none provided
         if not csv_paths:
-            default_csv = BASE_DIR / "dataset1.csv"
+            # Correct dataset location: backend/.. = project root
+            default_csv = BASE_DIR.parent / "dataset1.csv"
+
             if default_csv.exists():
                 csv_paths = [str(default_csv)]
+            else:
+                raise RuntimeError(f"dataset1.csv not found at {default_csv}")
+
         
         # Initialize builder
         # Pass list of CSV paths or empty list
@@ -126,9 +131,14 @@ def regenerate(req: RegenerateRequest):
         
         # Use default CSV if exists
         if not csv_paths:
-            default_csv = BASE_DIR / "dataset1.csv"
+            # Correct dataset location: backend/.. = project root
+            default_csv = BASE_DIR.parent / "dataset1.csv"
+
             if default_csv.exists():
                 csv_paths = [str(default_csv)]
+            else:
+                raise RuntimeError(f"dataset1.csv not found at {default_csv}")
+
         
         # Initialize builder
         builder = FEHTeamBuilder(
