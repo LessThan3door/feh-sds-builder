@@ -75,6 +75,14 @@ def generate(req: GenerateRequest):
         
         # Initialize builder
         # Pass list of CSV paths or empty list
+         default_csv = Path(__file__).parent.parent / "dataset1.csv"
+        if default_csv.exists():
+            csv_paths = [str(default_csv)]
+        else:
+            # Helpful error — easier to debug deployment if dataset missing
+            raise RuntimeError(f"Default dataset not found at {default_csv}. Ensure dataset1.csv is packaged with the service.")
+
+ 
         builder = FEHTeamBuilder(
             csv_file_path=csv_paths if csv_paths else [],
             priority_weights=[1.0] if csv_paths else [],
@@ -218,7 +226,16 @@ def debug_csv():
         
         if not csv_paths:
             return {"error": "No CSV found"}
-        
+
+
+        # prefer explicit dataset in the repo (path is relative to package root)
+        default_csv = Path(__file__).parent.parent / "dataset1.csv"
+        if default_csv.exists():
+            csv_paths = [str(default_csv)]
+        else:
+            # Helpful error — easier to debug deployment if dataset missing
+            raise RuntimeError(f"Default dataset not found at {default_csv}. Ensure dataset1.csv is packaged with the service.")
+
         # Load and parse
         builder = FEHTeamBuilder(
             csv_file_path=csv_paths,
