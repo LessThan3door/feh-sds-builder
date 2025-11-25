@@ -62,33 +62,26 @@ async def upload_csv(file: UploadFile = File(...)):
 # ---------------------------------------------------------------------
 # GENERATE TEAMS
 # ---------------------------------------------------------------------
+from fastapi import Body, HTTPException
+
 @app.post("/generate")
-async def generate(
-    payload: str = Form(...),
-    csv_files: Optional[str] = Form(None),
-):
+async def generate(payload: dict = Body(...)):
     """
-    payload: JSON containing available_units, seed_units, etc.
-    csv_files: JSON string list of uploaded CSV paths
+    Accepts pure JSON:
+      {
+        available_units: [...],
+        seed_units: [...],
+        csv_paths: [...],
+        etc.
+      }
     """
-
     try:
-        data = json.loads(payload)
-    except json.JSONDecodeError:
-        raise HTTPException(status_code=400, detail="Invalid JSON payload")
-
-    # Attach uploaded CSVs if included
-    if csv_files:
-        try:
-            data["csv_paths"] = json.loads(csv_files)
-        except json.JSONDecodeError:
-            data["csv_paths"] = []
-
-    try:
-        results = generate_fe_teams(data)
+        results = generate_fe_teams(payload)
         return {"teams": results}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Server error building teams: {e}")
+
+
 
 
 # ---------------------------------------------------------------------
