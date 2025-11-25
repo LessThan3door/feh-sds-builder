@@ -101,17 +101,17 @@ class FEHTeamBuilder:
     def build_multiple_teams(self, available_units, num_teams=4, team_size=5,
                             seed_units_per_team=None, forbidden_pairs=None, 
                             required_pairs=None, must_use_units=None,
-                            unit_quality_weight=0.3, excluded_units_per_team=None,
+                            unit_quality_weight=0.7, excluded_units_per_team=None,
                             debug=False, required_pairs_per_team=None, 
                             required_units_per_team=None, fill_all_slots=True):
         """Build multiple teams by prioritizing highest synergies across all teams."""
         teams = [[] for _ in range(num_teams)]
         remaining_units = list(available_units)
         
-        seed_units_per_team = seed_units_per_team or [[] for _ in range(num_teams)]
-        excluded_units_per_team = excluded_units_per_team or [[] for _ in range(num_teams)]
+        seed_units_per_team = seed_units_per_team or [None] * num_teams
         required_pairs_per_team = required_pairs_per_team or [None] * num_teams
         required_units_per_team = required_units_per_team or [None] * num_teams
+        excluded_units_per_team = excluded_units_per_team or [[] for _ in range(num_teams)]
         
         # Create a map of which seed units belong to which team
         seed_to_team = {}
@@ -132,16 +132,19 @@ class FEHTeamBuilder:
         # CRITICAL: Also reserve partners of seeded units from required pairs
         if required_pairs:
             for u1, u2 in required_pairs:
+                # If u1 is seeded, reserve u2 for the same team
                 if u1 in seed_to_team and u2 not in seed_to_team:
                     seed_to_team[u2] = seed_to_team[u1]
+                # If u2 is seeded, reserve u1 for the same team
                 elif u2 in seed_to_team and u1 not in seed_to_team:
                     seed_to_team[u1] = seed_to_team[u2]
         
-        # Add required units for each team (non-seeds)
+        # STEP 1.5: Add required units for each team (non-seeds)
         if required_units_per_team:
             for team_idx, required_list in enumerate(required_units_per_team):
                 if required_list:
                     for unit in required_list:
+                        # Skip if already added as seed
                         if unit not in teams[team_idx] and unit in remaining_units:
                             teams[team_idx].append(unit)
                             remaining_units.remove(unit)
@@ -159,9 +162,10 @@ class FEHTeamBuilder:
                         print(f"  Team {team_idx+1}: {', '.join(excluded_list)}")
                 print()
         
-        # Calculate unit quality scores
+        # Calculate unit quality scores (normalized usage frequency)
         max_usage = max(self.unit_counts.values()) if self.unit_counts else 1
         unit_quality = {}
+        
         for unit in available_units:
             usage = self.unit_counts.get(unit, 0)
             unit_quality[unit] = usage / max_usage if max_usage > 0 else 0
@@ -188,91 +192,11 @@ class FEHTeamBuilder:
                         if debug:
                             print(f"Team {team_idx+1}: Added seed unit {unit}")
         
-        # STEP 1.5: Select captains for teams without seeds using anti-synergy
-        # Collect existing captains (from seeds or already placed)
-        existing_captains = [team[0] for team in teams if team]
-        
-        if debug and existing_captains:
-            print("\nExisting captains from seeds:")
-            for i, team in enumerate(teams):
-                if team:
-                    print(f"  Team {i+1}: {team[0]}")
-        
-        # Select captains for teams that are still empty
-        teams_needing_captains = [i for i, team in enumerate(teams) if not team]
-        
-        if teams_needing_captains and remaining_units:
-            if debug:
-                print("\nSelecting captains for remaining teams based on anti-synergy...")
-            
-            # Find top units by quality
-            top_units = sorted(
-                [(u, unit_quality[u]) for u in remaining_units],
-                key=lambda x: x[1],
-                reverse=True
-            )
-            
-            # If no existing captains, select first captain (highest quality)
-            if not existing_captains and top_units:
-                first_team_idx = teams_needing_captains[0]
-                first_captain = top_units[0][0]
-                teams[first_team_idx].append(first_captain)
-                remaining_units.remove(first_captain)
-                existing_captains.append(first_captain)
-                teams_needing_captains = teams_needing_captains[1:]
-                if debug:
-                    print(f"Team {first_team_idx+1}: Selected captain {first_captain} (quality: {top_units[0][1]:.3f})")
-            
-            # Select remaining captains based on low synergy with existing captains
-            for team_idx in teams_needing_captains:
-                if not remaining_units:
-                    break
-                    
-                best_captain = None
-                best_score = -float('inf')
-                
-                # Consider top 50% of units by quality
-                quality_threshold = 0.25
-                candidates = [u for u, q in top_units if q >= quality_threshold and u in remaining_units]
-                
-                if not candidates:
-                    candidates = list(remaining_units)
-                
-                for unit in candidates:
-                    # Calculate average synergy with existing captains
-                    if existing_captains:
-                        avg_synergy = sum(self.calculate_synergy_score(unit, cap) 
-                                        for cap in existing_captains) / len(existing_captains)
-                    else:
-                        avg_synergy = 0
-                    
-                    # Score: prefer high quality and LOW synergy with other captains
-                    quality_score = unit_quality.get(unit, 0)
-                    score = quality_score - (avg_synergy * 2.0)
-                    
-                    if score > best_score:
-                        best_score = score
-                        best_captain = unit
-                
-                if best_captain:
-                    teams[team_idx].append(best_captain)
-                    remaining_units.remove(best_captain)
-                    existing_captains.append(best_captain)
-                    
-                    if debug:
-                        avg_syn = sum(self.calculate_synergy_score(best_captain, cap) 
-                                    for cap in existing_captains[:-1]) / len(existing_captains[:-1]) if len(existing_captains) > 1 else 0
-                        print(f"Team {team_idx+1}: Selected captain {best_captain} "
-                              f"(quality: {unit_quality.get(best_captain, 0):.3f}, "
-                              f"avg synergy with other captains: {avg_syn:.4f})")
-            
-            if debug:
-                print()
-        
         # STEP 2: Add required pair partners for seeded units
         if required_pairs:
             for team_idx in range(num_teams):
                 for u1, u2 in required_pairs:
+                    # If one is in team, add the other
                     if u1 in teams[team_idx] and u2 in remaining_units:
                         teams[team_idx].append(u2)
                         remaining_units.remove(u2)
@@ -291,7 +215,7 @@ class FEHTeamBuilder:
             
             for unit in must_use_units:
                 if unit not in remaining_units:
-                    continue
+                    continue  # Already placed as seed or required partner
                 
                 # Check if unit has a required partner
                 required_partner = None
@@ -306,6 +230,7 @@ class FEHTeamBuilder:
                             required_partner = u1
                             break
                 
+                # Find best team for this must-use unit
                 best_team_idx = None
                 best_score = -float('inf')
                 
@@ -313,14 +238,17 @@ class FEHTeamBuilder:
                     if len(teams[team_idx]) >= team_size:
                         continue
                     
+                    # Check if unit is excluded from this team
                     if unit in excluded_units_per_team[team_idx]:
                         if debug:
                             print(f"  Skipping Team {team_idx+1} - {unit} is excluded")
                         continue
                     
+                    # Check if reserved for different team
                     if unit in seed_to_team and seed_to_team[unit] != team_idx:
                         continue
                     
+                    # Check forbidden pairs
                     is_forbidden = False
                     if forbidden_pairs:
                         for team_unit in teams[team_idx]:
@@ -334,10 +262,12 @@ class FEHTeamBuilder:
                     if is_forbidden:
                         continue
                     
+                    # If has required partner, check if partner can join
                     if required_partner:
                         if required_partner not in remaining_units or len(teams[team_idx]) + 2 > team_size:
                             continue
                         
+                        # Check if partner is forbidden
                         partner_forbidden = False
                         if forbidden_pairs:
                             for team_unit in teams[team_idx]:
@@ -352,6 +282,7 @@ class FEHTeamBuilder:
                         if partner_forbidden:
                             continue
                     
+                    # Calculate synergy
                     if teams[team_idx]:
                         score = self.calculate_conditional_synergy(unit, teams[team_idx])
                     else:
@@ -361,12 +292,14 @@ class FEHTeamBuilder:
                         best_score = score
                         best_team_idx = team_idx
                 
+                # Place the must-use unit
                 if best_team_idx is not None:
                     teams[best_team_idx].append(unit)
                     remaining_units.remove(unit)
                     if debug:
                         print(f"Team {best_team_idx+1}: MUST-USE unit {unit} (synergy: {best_score:.4f})")
                     
+                    # Add required partner if applicable
                     if required_partner and required_partner in remaining_units:
                         teams[best_team_idx].append(required_partner)
                         remaining_units.remove(required_partner)
@@ -375,18 +308,21 @@ class FEHTeamBuilder:
                 else:
                     if debug:
                         print(f"ERROR: Could not place must-use unit {unit} - no valid team found!")
-            
-            if debug:
-                print("--- Continuing with regular placements ---\n")
+        
+        if debug and must_use_units:
+            print("--- Continuing with regular placements ---\n")
         
         # STEP 3: Fill remaining slots by prioritizing best synergies globally
         while remaining_units and any(len(team) < team_size for team in teams):
             best_placement = None
             best_score = -float('inf')
             
+            # For each remaining unit, find its best team placement
             for unit in remaining_units:
+                # Check if unit has a required partner
                 required_partner = None
                 if required_pairs:
+                    # Check if partner is already placed on any team
                     all_placed_units = [u for team in teams for u in team]
                     
                     for u1, u2 in required_pairs:
@@ -397,16 +333,20 @@ class FEHTeamBuilder:
                             required_partner = u1
                             break
                 
+                # Try placing unit on each team
                 for team_idx in range(num_teams):
                     if len(teams[team_idx]) >= team_size:
                         continue
                     
+                    # Check if unit is excluded from this team
                     if unit in excluded_units_per_team[team_idx]:
                         continue
                     
+                    # Check if unit is reserved for a different team
                     if unit in seed_to_team and seed_to_team[unit] != team_idx:
                         continue
                     
+                    # Check forbidden pairs
                     is_forbidden = False
                     if forbidden_pairs:
                         for team_unit in teams[team_idx]:
@@ -420,10 +360,12 @@ class FEHTeamBuilder:
                     if is_forbidden:
                         continue
                     
+                    # If unit has required partner, check if partner can also join
                     if required_partner:
                         partner_can_join = required_partner in remaining_units
                         
                         if partner_can_join and len(teams[team_idx]) + 2 <= team_size:
+                            # Check if partner is forbidden
                             partner_forbidden = False
                             if forbidden_pairs:
                                 for team_unit in teams[team_idx]:
@@ -438,17 +380,21 @@ class FEHTeamBuilder:
                             if partner_forbidden:
                                 continue
                         elif not partner_can_join or len(teams[team_idx]) + 2 > team_size:
+                            # Can't place this unit if partner can't join
                             continue
                     
+                    # Calculate synergy score for this placement
                     if teams[team_idx]:
                         score = self.calculate_conditional_synergy(unit, teams[team_idx])
                     else:
                         score = self.unit_counts.get(unit, 0)
                     
+                    # Track best placement
                     if score > best_score:
                         best_score = score
                         best_placement = (team_idx, unit, required_partner)
             
+            # Apply best placement
             if best_placement:
                 team_idx, unit, partner = best_placement
                 teams[team_idx].append(unit)
@@ -457,18 +403,34 @@ class FEHTeamBuilder:
                 if debug:
                     print(f"Team {team_idx+1}: Added {unit} (synergy: {best_score:.4f})")
                 
+                # Add required partner if applicable
                 if partner and partner in remaining_units:
                     teams[team_idx].append(partner)
                     remaining_units.remove(partner)
                     if debug:
                         print(f"Team {team_idx+1}: Added required partner {partner}")
             else:
+                # No valid placement found
                 if debug:
                     print(f"No valid placement found for remaining units: {remaining_units}")
                 break
         
         return teams
     
+    def get_top_synergies(self, unit, top_n=10):
+        """Get top synergistic units for a given unit."""
+        if unit not in self.unit_counts:
+            return []
+        
+        synergies = []
+        for other_unit in self.unit_counts.keys():
+            if other_unit != unit:
+                score = self.calculate_synergy_score(unit, other_unit)
+                synergies.append((other_unit, score))
+        
+        synergies.sort(key=lambda x: x[1], reverse=True)
+        return synergies[:top_n]
+        
     def suggest_captain_skill(self, team, datasets_with_skills=None):
         """Suggest captain skill based on team composition."""
         if not self.datasets:
