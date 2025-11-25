@@ -13,6 +13,27 @@ async function postJSON(url, data) {
   return res.json();
 }
 
+function parseSeedUnits(text) {
+  // Split into lines
+  const lines = text.trim().split('\n');
+
+  // Convert each line into an array of unit names
+  const seedUnits = lines.map(line => {
+    if (!line.trim()) return [];
+    return line
+      .split(',')
+      .map(u => u.trim())
+      .filter(Boolean);
+  });
+
+  // Ensure exactly 4 teams (pad with empty arrays if needed)
+  while (seedUnits.length < 4) seedUnits.push([]);
+  if (seedUnits.length > 4) seedUnits.length = 4;
+
+  return seedUnits;
+}
+
+
 function showError(msg){ document.getElementById('errors').innerHTML = '<div class="error">'+msg+'</div>'; }
 function clearError(){ document.getElementById('errors').innerHTML = ''; }
 
@@ -66,8 +87,8 @@ document.getElementById('generate').addEventListener('click', async ()=>{
   clearError();
   banned_assignments = [];
   const available = document.getElementById('available_units').value.split('\n').map(s=>s.trim()).filter(Boolean);
-  let seed = [[],[],[],[]];
-  try{ const raw = document.getElementById('seed_units').value.trim(); seed = raw? JSON.parse(raw): [[],[],[],[]]; }catch(e){ showError('seed_units must be valid JSON'); return; }
+  const raw = document.getElementById('seed_units').value.trim();
+  const seed = parseSeedUnits(raw);
   const must_use = document.getElementById('must_use_units').value.split('\n').map(s=>s.trim()).filter(Boolean);
   if(available.length===0){ showError('Please provide available units'); return; }
   last_all_available_units = available.slice(); last_must_use = must_use.slice();
