@@ -14,6 +14,12 @@
         <p class="muted">(Tip: Copy and paste the units from the Datasheet and remove who you don't have/want)</p>
       </header>
       <section class="panel inputs">
+        <div style="margin-top:10px;">
+          <label>Auto-Fill Available Units (Top N):</label><br>
+          <input id="autofill_amount" type="number" value="50" min="1" style="width:80px;">
+          <button id="autofill">Load</button>
+        </div>
+
         <label>Available Units (one per line)</label>
         <textarea id="available_units" rows="8" placeholder="Sakura Legendary&#10;Thorr Summer Duo&#10;Alfador Mythic&#10;..."></textarea>
         <div class="row">
