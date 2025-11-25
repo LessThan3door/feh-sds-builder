@@ -188,64 +188,83 @@ class FEHTeamBuilder:
                         if debug:
                             print(f"Team {team_idx+1}: Added seed unit {unit}")
         
-        # STEP 1.5: If no seeds provided, intelligently select captains
-        if not any(seed_units_per_team):
+        # STEP 1.5: Select captains for teams without seeds using anti-synergy
+        # Collect existing captains (from seeds or already placed)
+        existing_captains = [team[0] for team in teams if team]
+        
+        if debug and existing_captains:
+            print("\nExisting captains from seeds:")
+            for i, team in enumerate(teams):
+                if team:
+                    print(f"  Team {i+1}: {team[0]}")
+        
+        # Select captains for teams that are still empty
+        teams_needing_captains = [i for i, team in enumerate(teams) if not team]
+        
+        if teams_needing_captains and remaining_units:
             if debug:
-                print("\nNo seeds provided - selecting captains based on anti-synergy...")
+                print("\nSelecting captains for remaining teams based on anti-synergy...")
             
             # Find top units by quality
             top_units = sorted(
-                [(u, unit_quality[u]) for u in available_units],
+                [(u, unit_quality[u]) for u in remaining_units],
                 key=lambda x: x[1],
                 reverse=True
             )
             
-            # Select first captain (highest quality)
-            if top_units and remaining_units:
+            # If no existing captains, select first captain (highest quality)
+            if not existing_captains and top_units:
+                first_team_idx = teams_needing_captains[0]
                 first_captain = top_units[0][0]
-                teams[0].append(first_captain)
+                teams[first_team_idx].append(first_captain)
                 remaining_units.remove(first_captain)
+                existing_captains.append(first_captain)
+                teams_needing_captains = teams_needing_captains[1:]
                 if debug:
-                    print(f"Team 1: Selected captain {first_captain} (quality: {top_units[0][1]:.3f})")
+                    print(f"Team {first_team_idx+1}: Selected captain {first_captain} (quality: {top_units[0][1]:.3f})")
+            
+            # Select remaining captains based on low synergy with existing captains
+            for team_idx in teams_needing_captains:
+                if not remaining_units:
+                    break
+                    
+                best_captain = None
+                best_score = -float('inf')
                 
-                # Select remaining captains based on low synergy with existing captains
-                existing_captains = [first_captain]
+                # Consider top 50% of units by quality
+                quality_threshold = 0.25
+                candidates = [u for u, q in top_units if q >= quality_threshold and u in remaining_units]
                 
-                for team_idx in range(1, num_teams):
-                    best_captain = None
-                    best_score = -float('inf')
-                    
-                    # Consider top 50% of units by quality
-                    quality_threshold = 0.25
-                    candidates = [u for u, q in top_units if q >= quality_threshold and u in remaining_units]
-                    
-                    if not candidates:
-                        candidates = remaining_units
-                    
-                    for unit in candidates:
-                        # Calculate average synergy with existing captains
+                if not candidates:
+                    candidates = list(remaining_units)
+                
+                for unit in candidates:
+                    # Calculate average synergy with existing captains
+                    if existing_captains:
                         avg_synergy = sum(self.calculate_synergy_score(unit, cap) 
                                         for cap in existing_captains) / len(existing_captains)
-                        
-                        # Score: prefer high quality and LOW synergy with other captains
-                        quality_score = unit_quality[unit]
-                        score = quality_score - (avg_synergy * 2.0)
-                        
-                        if score > best_score:
-                            best_score = score
-                            best_captain = unit
+                    else:
+                        avg_synergy = 0
                     
-                    if best_captain:
-                        teams[team_idx].append(best_captain)
-                        remaining_units.remove(best_captain)
-                        existing_captains.append(best_captain)
-                        
-                        if debug:
-                            avg_syn = sum(self.calculate_synergy_score(best_captain, cap) 
-                                        for cap in existing_captains[:-1]) / (len(existing_captains) - 1)
-                            print(f"Team {team_idx+1}: Selected captain {best_captain} "
-                                  f"(quality: {unit_quality[best_captain]:.3f}, "
-                                  f"avg synergy with other captains: {avg_syn:.4f})")
+                    # Score: prefer high quality and LOW synergy with other captains
+                    quality_score = unit_quality.get(unit, 0)
+                    score = quality_score - (avg_synergy * 2.0)
+                    
+                    if score > best_score:
+                        best_score = score
+                        best_captain = unit
+                
+                if best_captain:
+                    teams[team_idx].append(best_captain)
+                    remaining_units.remove(best_captain)
+                    existing_captains.append(best_captain)
+                    
+                    if debug:
+                        avg_syn = sum(self.calculate_synergy_score(best_captain, cap) 
+                                    for cap in existing_captains[:-1]) / len(existing_captains[:-1]) if len(existing_captains) > 1 else 0
+                        print(f"Team {team_idx+1}: Selected captain {best_captain} "
+                              f"(quality: {unit_quality.get(best_captain, 0):.3f}, "
+                              f"avg synergy with other captains: {avg_syn:.4f})")
             
             if debug:
                 print()
