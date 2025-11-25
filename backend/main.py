@@ -193,3 +193,64 @@ async def upload_csv(file: UploadFile = File(...)):
 @app.get("/health")
 def health_check():
     return {"status": "healthy"}
+
+
+@app.get("/debug-csv")
+def debug_csv():
+    """Debug endpoint to check CSV loading and unit counts"""
+    try:
+        # Try to find and load CSV
+        csv_paths = []
+        upload_files = list(UPLOAD_DIR.glob("*.csv"))
+        if upload_files:
+            csv_paths = [str(upload_files[0])]
+        
+        if not csv_paths:
+            possible_paths = [
+                BASE_DIR.parent / "dataset1.csv",
+                BASE_DIR / "dataset1.csv",
+                Path("/app/dataset1.csv"),
+            ]
+            for path in possible_paths:
+                if path.exists():
+                    csv_paths = [str(path)]
+                    break
+        
+        if not csv_paths:
+            return {"error": "No CSV found"}
+        
+        # Load and parse
+        builder = FEHTeamBuilder(
+            csv_file_path=csv_paths,
+            priority_weights=[1.0],
+            skip_header_rows=3
+        )
+        
+        # Get top 20 units by usage
+        top_units = sorted(
+            builder.unit_counts.items(),
+            key=lambda x: x[1],
+            reverse=True
+        )[:20]
+        
+        # Get some synergy examples
+        if len(top_units) >= 2:
+            unit1, unit2 = top_units[0][0], top_units[1][0]
+            synergy = builder.calculate_synergy_score(unit1, unit2)
+        else:
+            unit1 = unit2 = synergy = None
+        
+        return {
+            "csv_path": csv_paths[0],
+            "total_units": len(builder.unit_counts),
+            "total_brigades": len(builder.datasets[0]) // 4 if builder.datasets else 0,
+            "top_20_units": [{"unit": u, "count": c} for u, c in top_units],
+            "sample_synergy": {
+                "unit1": unit1,
+                "unit2": unit2,
+                "score": synergy
+            }
+        }
+    except Exception as e:
+        import traceback
+        return {"error": str(e), "traceback": traceback.format_exc()}
