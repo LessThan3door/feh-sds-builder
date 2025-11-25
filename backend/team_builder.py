@@ -287,12 +287,13 @@ class FEHTeamBuilder:
                     else:
                         score = self.unit_counts.get(unit, 0)
                     
-                    # When scores are equal, prefer teams with fewer units (to spread captains)
+                    # When scores are very close, prefer teams with fewer units (to spread units)
                     # Use a very small tiebreaker that won't affect actual score comparisons
                     tiebreaker = -len(teams[team_idx]) * 1e-10
                     
+                    # Compare with tiebreaker but store the actual score
                     if score + tiebreaker > best_score:
-                        best_score = score + tiebreaker
+                        best_score = score  # Store actual score, not score + tiebreaker
                         best_placement = (team_idx, unit, required_partner)
             
             if best_placement:
