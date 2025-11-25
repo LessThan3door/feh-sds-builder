@@ -95,7 +95,7 @@ def generate(req: GenerateRequest):
             required_pairs=required_pairs,
             must_use_units=req.must_use_units or [],
             unit_quality_weight=0.8,
-            debug=True
+            debug=False
         )
         
         # Format response
@@ -157,7 +157,7 @@ def regenerate(req: RegenerateRequest):
             must_use_units=req.must_use_units or [],
             unit_quality_weight=0.8,
             excluded_units_per_team=excluded_units_per_team,
-            debug=True
+            debug=False
         )
         
         # Format response
@@ -233,23 +233,31 @@ def debug_csv():
             reverse=True
         )[:20]
         
-        # Get some synergy examples
-        if len(top_units) >= 2:
-            unit1, unit2 = top_units[0][0], top_units[1][0]
-            synergy = builder.calculate_synergy_score(unit1, unit2)
-        else:
-            unit1 = unit2 = synergy = None
+        # Test specific synergies
+        sakura_camilla_cooccur = builder.unit_cooccurrence["Sakura Legendary"].get("Camilla Young", 0)
+        sakura_chrom_cooccur = builder.unit_cooccurrence["Sakura Legendary"].get("Chrom Feroxi", 0)
+        
+        sakura_camilla_synergy = builder.calculate_synergy_score("Sakura Legendary", "Camilla Young")
+        sakura_chrom_synergy = builder.calculate_synergy_score("Sakura Legendary", "Chrom Feroxi")
+        
+        # Test conditional synergy (what score would each get when joining Team 1 with just Sakura?)
+        camilla_conditional = builder.calculate_conditional_synergy("Camilla Young", ["Sakura Legendary"])
+        chrom_conditional = builder.calculate_conditional_synergy("Chrom Feroxi", ["Sakura Legendary"])
         
         return {
             "csv_path": csv_paths[0],
             "total_units": len(builder.unit_counts),
             "total_brigades": len(builder.datasets[0]) // 4 if builder.datasets else 0,
             "top_20_units": [{"unit": u, "count": c} for u, c in top_units],
-            "sample_synergy": {
-                "unit1": unit1,
-                "unit2": unit2,
-                "score": synergy
-            }
+            "sakura_usage": builder.unit_counts.get("Sakura Legendary", 0),
+            "camilla_usage": builder.unit_counts.get("Camilla Young", 0),
+            "chrom_usage": builder.unit_counts.get("Chrom Feroxi", 0),
+            "sakura_camilla_cooccur": sakura_camilla_cooccur,
+            "sakura_chrom_cooccur": sakura_chrom_cooccur,
+            "sakura_camilla_synergy": sakura_camilla_synergy,
+            "sakura_chrom_synergy": sakura_chrom_synergy,
+            "camilla_conditional_with_sakura": camilla_conditional,
+            "chrom_conditional_with_sakura": chrom_conditional
         }
     except Exception as e:
         import traceback
