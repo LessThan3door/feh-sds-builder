@@ -12,11 +12,9 @@
         <h1>FEH Team Generator</h1>
         <p class="muted">Paste your units, upload a CSV, generate teams, then edit and regenerate.</p>
       </header>
-
       <section class="panel inputs">
         <label>Available Units (one per line)</label>
-        <textarea id="available_units" rows="8" placeholder="Sakura Legendary&#10;Thorr Summer Duo&#10;..."></textarea>
-
+        <textarea id="available_units" rows="8" placeholder="Sakura Legendary&#10;Thorr Summer Duo&#10;Alfador Mythic&#10;..."></textarea>
         <div class="row">
           <div class="col">
             <label>Seed Units per Team (JSON)</label>
@@ -27,7 +25,6 @@
             <textarea id="must_use_units" rows="3" placeholder="Unit A&#10;Unit B"></textarea>
           </div>
         </div>
-
         <div class="controls">
           <input id="csvfile" type="file" accept=".csv">
           <button id="upload">Upload CSV</button>
@@ -35,21 +32,16 @@
           <button id="clear" class="secondary">Clear</button>
         </div>
       </section>
-
       <section class="panel results">
         <h2>Teams</h2>
-        <p class="muted small">
-          Drag units between teams, remove units, or move them — then click <strong>Re-Run Builder</strong>.
-        </p>
+        <p class="muted small">Drag units between teams, remove units, or move them — then click <strong>Re-Run Builder</strong>.</p>
         <div id="errors" class="errors" aria-live="polite"></div>
         <div id="teams" class="teams-grid"></div>
       </section>
-
       <footer class="muted small">
-        <p>Deploy-ready. Original script reference: <code>/mnt/data/FEH SDS Autobuilder.py</code></p>
+        <p>FEH SDS Team Builder - Generate synergistic teams based on historical data</p>
       </footer>
     </main>
-
     <script src="/static/app.js"></script>
   </body>
 </html>
