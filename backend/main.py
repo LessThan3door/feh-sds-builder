@@ -26,7 +26,7 @@ app.add_middleware(
 
 # Directories
 BASE_DIR = Path(__file__).parent.parent
-STATIC_DIR = BASE_DIR / "static"
+STATIC_DIR = BASE_DIR / "backend" / "static"
 UPLOAD_DIR = BASE_DIR / "uploads"
 UPLOAD_DIR.mkdir(exist_ok=True)
 
