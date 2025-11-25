@@ -101,7 +101,7 @@ class FEHTeamBuilder:
     def build_multiple_teams(self, available_units, num_teams=4, team_size=5,
                             seed_units_per_team=None, forbidden_pairs=None, 
                             required_pairs=None, must_use_units=None,
-                            unit_quality_weight=0.3, excluded_units_per_team=None,
+                            unit_quality_weight=0.8, excluded_units_per_team=None,
                             debug=False):
         """Build multiple teams by prioritizing highest synergies across all teams."""
         teams = [[] for _ in range(num_teams)]
