@@ -95,7 +95,7 @@ def generate(req: GenerateRequest):
             required_pairs=required_pairs,
             must_use_units=req.must_use_units or [],
             unit_quality_weight=0.8,
-            debug=False
+            debug=True
         )
         
         # Format response
@@ -157,7 +157,7 @@ def regenerate(req: RegenerateRequest):
             must_use_units=req.must_use_units or [],
             unit_quality_weight=0.8,
             excluded_units_per_team=excluded_units_per_team,
-            debug=False
+            debug=True
         )
         
         # Format response
