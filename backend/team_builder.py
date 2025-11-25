@@ -205,12 +205,15 @@ class FEHTeamBuilder:
             if debug:
                 print("\nSelecting captains for remaining teams based on anti-synergy...")
             
-            # Find top units by quality
-            top_units = sorted(
-                [(u, unit_quality[u]) for u in remaining_units],
+            # Find top units by quality from ALL available units initially
+            all_top_units = sorted(
+                [(u, unit_quality[u]) for u in available_units],
                 key=lambda x: x[1],
                 reverse=True
             )
+            
+            # Filter to only remaining units
+            top_units = [(u, q) for u, q in all_top_units if u in remaining_units]
             
             # If no existing captains, select first captain (highest quality)
             if not existing_captains and top_units:
@@ -227,13 +230,16 @@ class FEHTeamBuilder:
             for team_idx in teams_needing_captains:
                 if not remaining_units:
                     break
+                
+                # Refresh top_units to only include remaining
+                top_units = [(u, q) for u, q in all_top_units if u in remaining_units]
                     
                 best_captain = None
                 best_score = -float('inf')
                 
                 # Consider top 50% of units by quality
                 quality_threshold = 0.25
-                candidates = [u for u, q in top_units if q >= quality_threshold and u in remaining_units]
+                candidates = [u for u, q in top_units if q >= quality_threshold]
                 
                 if not candidates:
                     candidates = list(remaining_units)
@@ -284,100 +290,13 @@ class FEHTeamBuilder:
                         if debug:
                             print(f"Team {team_idx+1}: Added required partner {u1} for {u2}")
         
-        # STEP 2.5: FORCE PLACEMENT of must_use_units (HIGHEST PRIORITY)
+        # STEP 2.5: Handle must_use_units - place them after team building if not already placed
+        # Store for later - we'll handle these AFTER all other placements
+        must_use_to_place = []
         if must_use_units:
-            if debug:
-                print("\n--- Placing must-use units (highest priority) ---")
-            
             for unit in must_use_units:
-                if unit not in remaining_units:
-                    continue
-                
-                # Check if unit has a required partner
-                required_partner = None
-                all_placed_units = [u for team in teams for u in team]
-                
-                if required_pairs:
-                    for u1, u2 in required_pairs:
-                        if u1 == unit and u2 not in all_placed_units:
-                            required_partner = u2
-                            break
-                        elif u2 == unit and u1 not in all_placed_units:
-                            required_partner = u1
-                            break
-                
-                best_team_idx = None
-                best_score = -float('inf')
-                
-                for team_idx in range(num_teams):
-                    if len(teams[team_idx]) >= team_size:
-                        continue
-                    
-                    if unit in excluded_units_per_team[team_idx]:
-                        if debug:
-                            print(f"  Skipping Team {team_idx+1} - {unit} is excluded")
-                        continue
-                    
-                    if unit in seed_to_team and seed_to_team[unit] != team_idx:
-                        continue
-                    
-                    is_forbidden = False
-                    if forbidden_pairs:
-                        for team_unit in teams[team_idx]:
-                            for f1, f2 in forbidden_pairs:
-                                if (f1 == unit and f2 == team_unit) or (f2 == unit and f1 == team_unit):
-                                    is_forbidden = True
-                                    break
-                            if is_forbidden:
-                                break
-                    
-                    if is_forbidden:
-                        continue
-                    
-                    if required_partner:
-                        if required_partner not in remaining_units or len(teams[team_idx]) + 2 > team_size:
-                            continue
-                        
-                        partner_forbidden = False
-                        if forbidden_pairs:
-                            for team_unit in teams[team_idx]:
-                                for f1, f2 in forbidden_pairs:
-                                    if (f1 == required_partner and f2 == team_unit) or \
-                                       (f2 == required_partner and f1 == team_unit):
-                                        partner_forbidden = True
-                                        break
-                                if partner_forbidden:
-                                    break
-                        
-                        if partner_forbidden:
-                            continue
-                    
-                    if teams[team_idx]:
-                        score = self.calculate_conditional_synergy(unit, teams[team_idx])
-                    else:
-                        score = self.unit_counts.get(unit, 0)
-                    
-                    if score > best_score:
-                        best_score = score
-                        best_team_idx = team_idx
-                
-                if best_team_idx is not None:
-                    teams[best_team_idx].append(unit)
-                    remaining_units.remove(unit)
-                    if debug:
-                        print(f"Team {best_team_idx+1}: MUST-USE unit {unit} (synergy: {best_score:.4f})")
-                    
-                    if required_partner and required_partner in remaining_units:
-                        teams[best_team_idx].append(required_partner)
-                        remaining_units.remove(required_partner)
-                        if debug:
-                            print(f"Team {best_team_idx+1}: Added required partner {required_partner}")
-                else:
-                    if debug:
-                        print(f"ERROR: Could not place must-use unit {unit} - no valid team found!")
-            
-            if debug:
-                print("--- Continuing with regular placements ---\n")
+                if unit in available_units and unit not in [u for team in teams for u in team]:
+                    must_use_to_place.append(unit)
         
         # STEP 3: Fill remaining slots by prioritizing best synergies globally
         while remaining_units and any(len(team) < team_size for team in teams):
@@ -466,6 +385,85 @@ class FEHTeamBuilder:
                 if debug:
                     print(f"No valid placement found for remaining units: {remaining_units}")
                 break
+        
+        # STEP 4: FORCE must_use_units by replacing low-value units
+        if must_use_to_place:
+            if debug:
+                print("\n--- Forcing must-use units by replacing low-value units ---")
+            
+            for must_use_unit in must_use_to_place:
+                if must_use_unit not in remaining_units:
+                    continue  # Already placed somehow
+                
+                # Find best team to place this unit (by swapping out lowest value unit)
+                best_swap = None
+                best_swap_score = float('inf')  # Lower is better for the unit being removed
+                
+                for team_idx in range(num_teams):
+                    # Skip if must-use unit is excluded from this team
+                    if must_use_unit in excluded_units_per_team[team_idx]:
+                        continue
+                    
+                    # Try each non-seed unit as swap candidate
+                    seed_units_for_team = seed_units_per_team[team_idx] if seed_units_per_team else []
+                    
+                    for candidate_idx, candidate_unit in enumerate(teams[team_idx]):
+                        # Don't swap out seed units or other must-use units
+                        if candidate_unit in (seed_units_for_team or []):
+                            continue
+                        if candidate_unit in (must_use_units or []):
+                            continue
+                        
+                        # Calculate temp team without candidate
+                        temp_team = [u for u in teams[team_idx] if u != candidate_unit]
+                        
+                        # Check if must_use_unit would be forbidden
+                        is_forbidden = False
+                        if forbidden_pairs:
+                            for team_unit in temp_team:
+                                for f1, f2 in forbidden_pairs:
+                                    if (f1 == must_use_unit and f2 == team_unit) or \
+                                       (f2 == must_use_unit and f1 == team_unit):
+                                        is_forbidden = True
+                                        break
+                                if is_forbidden:
+                                    break
+                        
+                        if is_forbidden:
+                            continue
+                        
+                        # Calculate swap score: lower is better (unit we want to remove)
+                        # Factors: low synergy + low usage
+                        candidate_synergy = self.calculate_conditional_synergy(candidate_unit, temp_team) if temp_team else 0
+                        candidate_quality = unit_quality.get(candidate_unit, 0)
+                        
+                        # Score for removal: prefer low synergy and low quality
+                        swap_score = candidate_synergy + (candidate_quality * unit_quality_weight)
+                        
+                        # Bonus: how well does must_use_unit fit?
+                        must_use_synergy = self.calculate_conditional_synergy(must_use_unit, temp_team) if temp_team else 0
+                        must_use_quality = unit_quality.get(must_use_unit, 0)
+                        must_use_fit = must_use_synergy + (must_use_quality * unit_quality_weight)
+                        
+                        # Final score: low removal score + high fit score = good swap
+                        final_score = swap_score - must_use_fit
+                        
+                        if final_score < best_swap_score:
+                            best_swap_score = final_score
+                            best_swap = (team_idx, candidate_idx, candidate_unit, swap_score)
+                
+                # Execute the swap
+                if best_swap:
+                    team_idx, candidate_idx, swap_out_unit, swap_out_score = best_swap
+                    teams[team_idx][candidate_idx] = must_use_unit
+                    remaining_units.remove(must_use_unit)
+                    remaining_units.append(swap_out_unit)
+                    
+                    if debug:
+                        print(f"Team {team_idx+1}: Swapped out '{swap_out_unit}' (score: {swap_out_score:.4f}) for MUST-USE '{must_use_unit}'")
+                else:
+                    if debug:
+                        print(f"WARNING: Could not place must-use unit '{must_use_unit}'")
         
         return teams
     
