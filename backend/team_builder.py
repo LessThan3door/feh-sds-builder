@@ -109,9 +109,9 @@ class FEHTeamBuilder:
                             seed_units_per_team=None, forbidden_pairs=None, 
                             required_pairs=None, must_use_units=None,
                             unit_quality_weight=0.3, excluded_units_per_team=None,
-                            debug=True, required_pairs_per_team=None, 
+                            debug=False, required_pairs_per_team=None, 
                             required_units_per_team=None, fill_all_slots=True,
-                            return_debug_log=True):
+                            return_debug_log=False):
         """Build multiple teams by prioritizing highest synergies across all teams."""
         debug_log = []  # Track placement decisions
         teams = [[] for _ in range(num_teams)]
@@ -310,20 +310,14 @@ class FEHTeamBuilder:
                 teams[team_idx].append(unit)
                 remaining_units.remove(unit)
                 
-                log_entry = f"Team {team_idx+1}: Added {unit} (synergy: {best_score:.4f})"
                 if debug:
-                    print(log_entry)
-                if return_debug_log:
-                    debug_log.append(log_entry)
+                    print(f"Team {team_idx+1}: Added {unit} (synergy: {best_score:.4f})")
                 
                 if partner and partner in remaining_units:
                     teams[team_idx].append(partner)
                     remaining_units.remove(partner)
-                    log_entry = f"Team {team_idx+1}: Added required partner {partner}"
                     if debug:
-                        print(log_entry)
-                    if return_debug_log:
-                        debug_log.append(log_entry)
+                        print(f"Team {team_idx+1}: Added required partner {partner}")
             else:
                 if debug:
                     print(f"No valid placement found for remaining units: {remaining_units}")
@@ -408,8 +402,6 @@ class FEHTeamBuilder:
                     if debug:
                         print(f"WARNING: Could not place must-use unit '{must_use_unit}'")
         
-        if return_debug_log:
-            return teams, debug_log
         return teams
     
     def suggest_captain_skill(self, team, datasets_with_skills=None):
