@@ -1,5 +1,23 @@
 const API_BASE = window.location.origin; // works on Render
 
+async function fetchTopUnits(n) {
+  try {
+    const res = await fetch(API_BASE + `/top-units?n=${n}`);
+    const data = await res.json();
+
+    if (data.error) {
+      showError("Failed to get top units: " + data.error);
+      return [];
+    }
+
+    return data.units || [];
+  } catch (e) {
+    showError("Network error while getting top units: " + e.toString());
+    return [];
+  }
+}
+
+
 async function postJSON(url, data) {
   const res = await fetch(url, {
     method: 'POST',
@@ -99,6 +117,27 @@ document.getElementById('generate').addEventListener('click', async ()=>{
     renderTeams();
   }catch(e){ showError(e.toString()); }
 });
+
+document.getElementById('autofill').addEventListener('click', async () => {
+  clearError();
+
+  const raw = document.getElementById('autofill_amount').value;
+  const n = parseInt(raw);
+
+  if (isNaN(n) || n <= 0) {
+    showError("Please enter a valid positive number (e.g., 50)");
+    return;
+  }
+
+  const units = await fetchTopUnits(n);
+  if (!units.length) {
+    showError("No units returned from server.");
+    return;
+  }
+
+  document.getElementById('available_units').value = units.join('\n');
+});
+
 
 document.getElementById('upload').addEventListener('click', async ()=>{
   const f = document.getElementById('csvfile').files[0]; if(!f){ alert('No file'); return; }
