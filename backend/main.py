@@ -1,43 +1,99 @@
-from fastapi import FastAPI, HTTPException
+import os
+from fastapi import FastAPI, UploadFile, File, HTTPException, Form
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
 from typing import List, Optional
+import shutil
+import json
+
 from backend.feh_sds_autobuilder import generate_fe_teams
-import os
 
-app = FastAPI(title="FEH Team Generator")
+# ---------------------------------------------------------------------
+# FASTAPI APP
+# ---------------------------------------------------------------------
+app = FastAPI()
 
-# Serve frontend
-static_dir = os.path.join(os.path.dirname(__file__), "static")
-app.mount("/static", StaticFiles(directory=static_dir), name="static")
+# Allow your frontend to call the backend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# ---------------------------------------------------------------------
+# STATIC FILES (index.html, app.js, style.css)
+# ---------------------------------------------------------------------
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+STATIC_DIR = os.path.join(BASE_DIR, "static")
+
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
 
 @app.get("/")
-def serve_frontend():
-    index_path = os.path.join(static_dir, "index.html")
+async def serve_index():
+    index_path = os.path.join(STATIC_DIR, "index.html")
+    if not os.path.exists(index_path):
+        raise HTTPException(status_code=404, detail="index.html not found in backend/static")
     return FileResponse(index_path)
 
 
-class GenerateRequest(BaseModel):
-    available_units: List[str]
-    forbidden_pairs: Optional[List[List[str]]] = None
-    required_pairs: Optional[List[List[str]]] = None
-    seed_units: Optional[List[List[str]]] = None
-    must_use_units: Optional[List[str]] = None
-    csv_paths: Optional[List[str]] = None
-    excluded_units_per_team: Optional[List[List[str]]] = None
-    current_teams: Optional[List[List[str]]] = None
-    original_teams: Optional[List[List[str]]] = None
-    removed_units_per_team: Optional[List[List[str]]] = None
-    banned_units_per_team: Optional[List[List[str]]] = None
-    re_run: Optional[bool] = False
+# ---------------------------------------------------------------------
+# UPLOAD CSV
+# ---------------------------------------------------------------------
+UPLOAD_DIR = os.path.join(BASE_DIR, "uploads")
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 
+@app.post("/upload_csv")
+async def upload_csv(file: UploadFile = File(...)):
+    if not file.filename.endswith(".csv"):
+        raise HTTPException(status_code=400, detail="Only CSV files are allowed")
+
+    save_path = os.path.join(UPLOAD_DIR, file.filename)
+
+    with open(save_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    return {"csv_path": save_path}
+
+
+# ---------------------------------------------------------------------
+# GENERATE TEAMS
+# ---------------------------------------------------------------------
 @app.post("/generate")
-def generate(req: GenerateRequest):
+async def generate(
+    payload: str = Form(...),
+    csv_files: Optional[str] = Form(None),
+):
+    """
+    payload: JSON containing available_units, seed_units, etc.
+    csv_files: JSON string list of uploaded CSV paths
+    """
+
     try:
-        payload = req.dict()
-        teams = generate_fe_teams(payload)
-        return {"teams": teams}
+        data = json.loads(payload)
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=400, detail="Invalid JSON payload")
+
+    # Attach uploaded CSVs if included
+    if csv_files:
+        try:
+            data["csv_paths"] = json.loads(csv_files)
+        except json.JSONDecodeError:
+            data["csv_paths"] = []
+
+    try:
+        results = generate_fe_teams(data)
+        return {"teams": results}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Server error building teams: {e}")
+
+
+# ---------------------------------------------------------------------
+# HEALTH CHECK (Render requirement)
+# ---------------------------------------------------------------------
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
