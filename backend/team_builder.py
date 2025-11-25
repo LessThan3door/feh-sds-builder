@@ -226,6 +226,10 @@ class FEHTeamBuilder:
             best_placement = None
             best_score = -float('inf')
             
+            # Debug: track all scores for first few placements
+            if debug and sum(len(t) for t in teams) < 8:
+                print(f"\n--- Evaluating placements (total placed: {sum(len(t) for t in teams)}) ---")
+            
             for unit in remaining_units:
                 required_partner = None
                 if required_pairs:
@@ -287,13 +291,16 @@ class FEHTeamBuilder:
                     else:
                         score = self.unit_counts.get(unit, 0)
                     
+                    # Debug output for first few units
+                    if debug and sum(len(t) for t in teams) < 8:
+                        print(f"  {unit} -> Team {team_idx+1}: score={score:.4f}, team={teams[team_idx]}")
+                    
                     # When scores are very close, prefer teams with fewer units (to spread units)
-                    # Use a very small tiebreaker that won't affect actual score comparisons
                     tiebreaker = -len(teams[team_idx]) * 1e-10
                     
                     # Compare with tiebreaker but store the actual score
                     if score + tiebreaker > best_score:
-                        best_score = score  # Store actual score, not score + tiebreaker
+                        best_score = score
                         best_placement = (team_idx, unit, required_partner)
             
             if best_placement:
