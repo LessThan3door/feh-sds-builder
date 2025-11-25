@@ -49,30 +49,29 @@ class FEHTeamBuilder:
             weight = self.priority_weights[dataset_idx]
             
             # Process brigades (every 4 rows = 1 brigade)
-            # A unit can only appear once per brigade
             for i in range(0, len(df), 4):
                 brigade = df.iloc[i:i+4]
                 
-                # Collect all units in this brigade
+                # Track which units appear in this brigade (for usage counts)
                 brigade_units = set()
-                brigade_teams = []
                 
+                # Process each team individually for co-occurrences
                 for _, row in brigade.iterrows():
                     unit_columns = [5, 7, 9, 11, 13]
-                    units = [str(row[col]).strip() for col in unit_columns 
-                            if col < len(row) and pd.notna(row[col]) and str(row[col]).strip()]
-                    brigade_teams.append(units)
-                    brigade_units.update(units)
+                    team_units = [str(row[col]).strip() for col in unit_columns 
+                                 if col < len(row) and pd.notna(row[col]) and str(row[col]).strip()]
+                    
+                    # Add to brigade set for usage counting
+                    brigade_units.update(team_units)
+                    
+                    # Count co-occurrences WITHIN THIS TEAM (not brigade-wide)
+                    for unit1, unit2 in combinations(team_units, 2):
+                        self.unit_cooccurrence[unit1][unit2] += weight
+                        self.unit_cooccurrence[unit2][unit1] += weight
                 
-                # Count each unit once per brigade
+                # Count each unit once per brigade for usage stats
                 for unit in brigade_units:
                     self.unit_counts[unit] += weight
-                
-                # Count co-occurrences within the brigade
-                # Units that appear in the same brigade (across any teams) have synergy
-                for unit1, unit2 in combinations(brigade_units, 2):
-                    self.unit_cooccurrence[unit1][unit2] += weight
-                    self.unit_cooccurrence[unit2][unit1] += weight
     
     def calculate_synergy_score(self, unit1, unit2):
         """Calculate synergy score between two units."""
