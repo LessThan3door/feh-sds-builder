@@ -55,6 +55,54 @@ class RegenerateRequest(BaseModel):
     must_use_units: Optional[List[str]] = None
     csv_filename: Optional[str] = None
 
+@app.get("/top-units")
+def get_top_units(n: int = 50):
+    """Return the top N units by usage."""
+    try:
+        # --- Find CSV path just like in /debug-csv ---
+        csv_paths = []
+        upload_files = list(UPLOAD_DIR.glob("*.csv"))
+        if upload_files:
+            csv_paths = [str(upload_files[0])]
+
+        if not csv_paths:
+            possible_paths = [
+                BASE_DIR.parent / "dataset1.csv",
+                BASE_DIR / "dataset1.csv",
+                Path("/app/dataset1.csv"),
+            ]
+            for path in possible_paths:
+                if path.exists():
+                    csv_paths = [str(path)]
+                    break
+
+        if not csv_paths:
+            return {"error": "No CSV found"}
+
+        # --- Build dataset ---
+        builder = FEHTeamBuilder(
+            csv_file_path=csv_paths,
+            priority_weights=[1.0],
+            skip_header_rows=3
+        )
+
+        # --- Sort all units by usage ---
+        sorted_units = sorted(builder.unit_counts.items(),
+                              key=lambda x: x[1],
+                              reverse=True)
+
+        # --- Return ONLY the unit names (not counts) ---
+        return {
+            "units": [u for (u, c) in sorted_units[:n]],
+            "total_available": len(sorted_units),
+            "csv_path": csv_paths[0]
+        }
+
+    except Exception as e:
+        import traceback
+        return {"error": str(e), "traceback": traceback.format_exc()}
+
+
 
 @app.post("/generate")
 def generate(req: GenerateRequest):
