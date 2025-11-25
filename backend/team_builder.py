@@ -109,9 +109,9 @@ class FEHTeamBuilder:
                             seed_units_per_team=None, forbidden_pairs=None, 
                             required_pairs=None, must_use_units=None,
                             unit_quality_weight=0.3, excluded_units_per_team=None,
-                            debug=False, required_pairs_per_team=None, 
+                            debug=True, required_pairs_per_team=None, 
                             required_units_per_team=None, fill_all_slots=True,
-                            return_debug_log=False):
+                            return_debug_log=True):
         """Build multiple teams by prioritizing highest synergies across all teams."""
         debug_log = []  # Track placement decisions
         teams = [[] for _ in range(num_teams)]
