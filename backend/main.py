@@ -237,8 +237,16 @@ def debug_csv():
         sakura_camilla_cooccur = builder.unit_cooccurrence["Sakura Legendary"].get("Camilla Young", 0)
         sakura_chrom_cooccur = builder.unit_cooccurrence["Sakura Legendary"].get("Chrom Feroxi", 0)
         
+        camilla_heimdallr_cooccur = builder.unit_cooccurrence["Camilla Young"].get("Heimdallr Mythic", 0)
+        camilla_alfador_cooccur = builder.unit_cooccurrence["Camilla Young"].get("Alfador Mythic", 0)
+        camilla_thorr_cooccur = builder.unit_cooccurrence["Camilla Young"].get("Thorr Summer Duo", 0)
+        
         sakura_camilla_synergy = builder.calculate_synergy_score("Sakura Legendary", "Camilla Young")
         sakura_chrom_synergy = builder.calculate_synergy_score("Sakura Legendary", "Chrom Feroxi")
+        
+        camilla_heimdallr_synergy = builder.calculate_synergy_score("Camilla Young", "Heimdallr Mythic")
+        camilla_alfador_synergy = builder.calculate_synergy_score("Camilla Young", "Alfador Mythic")
+        camilla_thorr_synergy = builder.calculate_synergy_score("Camilla Young", "Thorr Summer Duo")
         
         # Test conditional synergy (what score would each get when joining Team 1 with just Sakura?)
         camilla_conditional = builder.calculate_conditional_synergy("Camilla Young", ["Sakura Legendary"])
@@ -254,8 +262,14 @@ def debug_csv():
             "chrom_usage": builder.unit_counts.get("Chrom Feroxi", 0),
             "sakura_camilla_cooccur": sakura_camilla_cooccur,
             "sakura_chrom_cooccur": sakura_chrom_cooccur,
+            "camilla_heimdallr_cooccur": camilla_heimdallr_cooccur,
+            "camilla_alfador_cooccur": camilla_alfador_cooccur,
+            "camilla_thorr_cooccur": camilla_thorr_cooccur,
             "sakura_camilla_synergy": sakura_camilla_synergy,
             "sakura_chrom_synergy": sakura_chrom_synergy,
+            "camilla_heimdallr_synergy": camilla_heimdallr_synergy,
+            "camilla_alfador_synergy": camilla_alfador_synergy,
+            "camilla_thorr_synergy": camilla_thorr_synergy,
             "camilla_conditional_with_sakura": camilla_conditional,
             "chrom_conditional_with_sakura": chrom_conditional
         }
