@@ -48,18 +48,29 @@ class FEHTeamBuilder:
         for dataset_idx, df in enumerate(self.datasets):
             weight = self.priority_weights[dataset_idx]
             
-            # Each row is one team (not every 4 rows)
-            for idx, row in df.iterrows():
-                unit_columns = [5, 7, 9, 11, 13]
-                units = [str(row[col]).strip() for col in unit_columns 
-                        if col < len(row) and pd.notna(row[col]) and str(row[col]).strip()]
+            # Process brigades (every 4 rows = 1 brigade)
+            # A unit can only appear once per brigade
+            for i in range(0, len(df), 4):
+                brigade = df.iloc[i:i+4]
                 
-                # Count individual units
-                for unit in units:
+                # Collect all units in this brigade
+                brigade_units = set()
+                brigade_teams = []
+                
+                for _, row in brigade.iterrows():
+                    unit_columns = [5, 7, 9, 11, 13]
+                    units = [str(row[col]).strip() for col in unit_columns 
+                            if col < len(row) and pd.notna(row[col]) and str(row[col]).strip()]
+                    brigade_teams.append(units)
+                    brigade_units.update(units)
+                
+                # Count each unit once per brigade
+                for unit in brigade_units:
                     self.unit_counts[unit] += weight
                 
-                # Count pairwise co-occurrences
-                for unit1, unit2 in combinations(units, 2):
+                # Count co-occurrences within the brigade
+                # Units that appear in the same brigade (across any teams) have synergy
+                for unit1, unit2 in combinations(brigade_units, 2):
                     self.unit_cooccurrence[unit1][unit2] += weight
                     self.unit_cooccurrence[unit2][unit1] += weight
     
@@ -476,21 +487,25 @@ class FEHTeamBuilder:
         captain_unit = team[0] if team else None
         
         for df in datasets_with_skills:
-            for _, row in df.iterrows():
-                unit_columns = [5, 7, 9, 11, 13]
-                units = [str(row[col]).strip() for col in unit_columns 
-                        if col < len(row) and pd.notna(row[col]) and str(row[col]).strip()]
-                captain_skill = str(row[3]).strip() if len(row) > 3 and pd.notna(row[3]) else "Erosion"
+            # Process brigades (every 4 rows)
+            for i in range(0, len(df), 4):
+                brigade = df.iloc[i:i+4]
                 
-                if captain_unit and captain_unit in units:
-                    if units[0] == captain_unit:
-                        skill_counts[captain_skill] += 2
-                    else:
-                        skill_counts[captain_skill] += 1
-                
-                overlap = len(set(team) & set(units))
-                if overlap >= 3:
-                    skill_counts[captain_skill] += overlap * 0.5
+                for _, row in brigade.iterrows():
+                    unit_columns = [5, 7, 9, 11, 13]
+                    units = [str(row[col]).strip() for col in unit_columns 
+                            if col < len(row) and pd.notna(row[col]) and str(row[col]).strip()]
+                    captain_skill = str(row[3]).strip() if len(row) > 3 and pd.notna(row[3]) else "Erosion"
+                    
+                    if captain_unit and captain_unit in units:
+                        if units[0] == captain_unit:
+                            skill_counts[captain_skill] += 2
+                        else:
+                            skill_counts[captain_skill] += 1
+                    
+                    overlap = len(set(team) & set(units))
+                    if overlap >= 3:
+                        skill_counts[captain_skill] += overlap * 0.5
         
         if skill_counts:
             return max(skill_counts.items(), key=lambda x: x[1])[0]
