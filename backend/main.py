@@ -74,18 +74,12 @@ def generate(req: GenerateRequest):
                 csv_paths = [str(default_csv)]
         
         # Initialize builder
-        if csv_paths:
-            builder = FEHTeamBuilder(
-                csv_file_path=csv_paths,
-                priority_weights=[1.0],
-                skip_header_rows=3
-            )
-        else:
-            # No CSV - create builder with empty data
-            builder = FEHTeamBuilder(
-                csv_file_path=[],
-                skip_header_rows=3
-            )
+        # Pass list of CSV paths or empty list
+        builder = FEHTeamBuilder(
+            csv_file_path=csv_paths if csv_paths else [],
+            priority_weights=[1.0] if csv_paths else [],
+            skip_header_rows=3
+        )
         
         # Convert forbidden/required pairs from lists to tuples
         forbidden_pairs = [tuple(pair) for pair in (req.forbidden_pairs or [])]
@@ -137,17 +131,11 @@ def regenerate(req: RegenerateRequest):
                 csv_paths = [str(default_csv)]
         
         # Initialize builder
-        if csv_paths:
-            builder = FEHTeamBuilder(
-                csv_file_path=csv_paths,
-                priority_weights=[1.0],
-                skip_header_rows=3
-            )
-        else:
-            builder = FEHTeamBuilder(
-                csv_file_path=[],
-                skip_header_rows=3
-            )
+        builder = FEHTeamBuilder(
+            csv_file_path=csv_paths if csv_paths else [],
+            priority_weights=[1.0] if csv_paths else [],
+            skip_header_rows=3
+        )
         
         # Process banned assignments into excluded_units_per_team
         excluded_units_per_team = [[], [], [], []]
