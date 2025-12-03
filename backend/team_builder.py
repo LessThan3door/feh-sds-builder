@@ -546,7 +546,9 @@ class FEHTeamBuilder:
 
         captain_lower = captain_unit.lower()
 
-        for df in datasets_with_skills:
+       for dataset_idx, df in enumerate(datasets_with_skills):
+            weight = self.priority_weights[dataset_idx]
+
             for i in range(0, len(df), 4):
                 brigade = df.iloc[i:i+4]
                 
@@ -566,17 +568,19 @@ class FEHTeamBuilder:
                         continue
 
                     # ONLY score rows where this captain appears
-                    if not any(captain_lower == u.lower() for u in units):
+                    historical_captain = str(row[5]).strip().lower() if len(row) > 5 and pd.notna(row[5]) else ""
+                    if historical_captain != captain_lower:
                         continue
 
+
                     # Strong base weight for matching captain
-                    score = 2.0
+                    score = 3.0
 
                     # Bonus for row similarity
                     overlap = len(set(team) & set(units))
                     if overlap:
                         score += overlap
 
-                    skill_counts[skill] += score
+                    skill_counts[skill] += score * weight
 
         return max(skill_counts, key=skill_counts.get) if skill_counts else "Erosion"
