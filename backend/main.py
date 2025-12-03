@@ -154,13 +154,17 @@ def generate(req: GenerateRequest):
         # Format response
         results = []
         for team in teams:
-            captain_skill = builder.suggest_captain_skill(team) if csv_paths else None
+            captain = builder.choose_best_captain(team)
+            skill = builder.suggest_captain_skill(team)
+
             results.append({
                 "team": team,
-                "captain_skill": captain_skill
+                "captain": captain,
+                "captain_skill": skill
             })
-        
+
         return results
+
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error generating teams: {str(e)}")
@@ -221,13 +225,17 @@ def regenerate(req: RegenerateRequest):
         # Format response
         results = []
         for team in teams:
-            captain_skill = builder.suggest_captain_skill(team) if csv_paths else None
+            captain = builder.choose_best_captain(team)
+            skill = builder.suggest_captain_skill(team)
+
             results.append({
                 "team": team,
-                "captain_skill": captain_skill
+                "captain": captain,
+                "captain_skill": skill
             })
-        
+
         return results
+
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error regenerating teams: {str(e)}")
