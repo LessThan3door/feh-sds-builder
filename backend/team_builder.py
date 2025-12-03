@@ -533,14 +533,14 @@ class FEHTeamBuilder:
         datasets = datasets_with_skills if datasets_with_skills else self.datasets
 
         if not datasets or not team:
-            return "Not datasets/team"
+            return "Issue with reading dataset"
 
         # Fix dict-based calls
         if isinstance(team, dict):
             team = team.get("team", [])
 
         if not isinstance(team, list) or not team:
-            return "Not is instance"
+            return "Issue with reading teams"
 
         captain = team[0].strip().lower()
         skill_counts = defaultdict(int)
@@ -557,4 +557,4 @@ class FEHTeamBuilder:
                 if skill:
                     skill_counts[skill] += 1
 
-        return max(skill_counts, key=skill_counts.get) if skill_counts else "End"
+        return max(skill_counts, key=skill_counts.get) if skill_counts else "Issue with counting captain skills"
