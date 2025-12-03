@@ -502,11 +502,25 @@ class FEHTeamBuilder:
                 else:
                     if debug:
                         print(f"WARNING: Could not place must-use unit '{must_use_unit}'")
-        
+
+                # --- Ensure chosen captain is placed at index 0 for each team ---
+        for ti, team in enumerate(teams):
+            if not team:
+                continue
+            try:
+                captain_unit = self.choose_best_captain(team)
+            except Exception:
+                captain_unit = team[0]  # fallback safe behavior
+            if captain_unit and captain_unit in team:
+                # preserve relative order of other members:
+                team.remove(captain_unit)
+                team.insert(0, captain_unit)
+            # otherwise leave team unchanged
+                        
         return teams
     
     def suggest_captain_skill(self, team, datasets_with_skills=None):
-        """Suggest captain skill based on historical usage with this captain."""
+        """Suggest captain skill based on historical usage with the selected captain."""
         if not self.datasets:
             return "Erosion"
             
@@ -515,12 +529,12 @@ class FEHTeamBuilder:
         
         skill_counts = defaultdict(float)
 
-        # Determine selected captain (already verified)
+        # Always choose based on historical captain stats
         captain_unit = self.choose_best_captain(team)
         if not captain_unit:
             return "Erosion"
 
-        captain_unit_lower = captain_unit.lower()
+        captain_lower = captain_unit.lower()
 
         for df in datasets_with_skills:
             for i in range(0, len(df), 4):
@@ -528,25 +542,31 @@ class FEHTeamBuilder:
                 
                 for _, row in brigade.iterrows():
 
-                    # Parse units
+                    # Extract team units
                     unit_columns = [5, 7, 9, 11, 13]
-                    units = [str(row[col]).strip() for col in unit_columns
-                             if col < len(row) and pd.notna(row[col])]
+                    units = [
+                        str(row[col]).strip()
+                        for col in unit_columns
+                        if col < len(row) and pd.notna(row[col])
+                    ]
 
-                    units_lower = [u.lower() for u in units]
-
-                    # Parse captain skill (Column D / row[3])
-                    captain_skill = str(row[3]).strip() if len(row) > 3 and pd.notna(row[3]) else None
-                    if not captain_skill:
+                    # Captain skill column (D)
+                    skill = str(row[3]).strip() if len(row) > 3 and pd.notna(row[3]) else None
+                    if not skill:
                         continue
 
-                    # ONLY count skill if THIS ROW uses the selected captain
-                    if any(captain_unit_lower in u for u in units_lower):
-                        skill_counts[captain_skill] += 1.5
+                    # ONLY score rows where this captain appears
+                    if not any(captain_lower == u.lower() for u in units):
+                        continue
 
-                        # Bonus if this row has many overlapping teammates
-                        overlap = len(set(team) & set(units))
-                        if overlap >= 3:
-                            skill_counts[captain_skill] += overlap
+                    # Strong base weight for matching captain
+                    score = 2.0
+
+                    # Bonus for row similarity
+                    overlap = len(set(team) & set(units))
+                    if overlap:
+                        score += overlap
+
+                    skill_counts[skill] += score
 
         return max(skill_counts, key=skill_counts.get) if skill_counts else "Erosion"
