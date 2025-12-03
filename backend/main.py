@@ -224,16 +224,16 @@ def regenerate(req: RegenerateRequest):
         # OUTPUT CLEAN RESULT
         results = []
         for team in teams:
-                # team might be returned as a dict {"team": [...], ...} or as a plain list.
+            # team might be returned as a dict {"team": [...], ...} or as a plain list.
             team_list = team["team"] if isinstance(team, dict) else team
 
-             captain = builder.choose_best_captain(team_list)
-             skill = builder.suggest_captain_skill(team_list)
+            captain = builder.choose_best_captain(team_list)
+            skill = builder.suggest_captain_skill(team_list)
 
-              results.append({
-                 "team": team_list,
-                 "captain": captain,
-                 "captain_skill": skill
+            results.append({
+                "team": team_list,
+                "captain": captain,
+                "captain_skill": skill
                })
         return results
 
