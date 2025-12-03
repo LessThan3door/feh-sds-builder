@@ -506,50 +506,47 @@ class FEHTeamBuilder:
         return teams
     
     def suggest_captain_skill(self, team, datasets_with_skills=None):
-        """Suggest captain skill based on team composition."""
+        """Suggest captain skill based on historical usage with this captain."""
         if not self.datasets:
-            return None
+            return "Erosion"
             
         if not datasets_with_skills:
             datasets_with_skills = self.datasets
         
-        skill_counts = defaultdict(int)
+        skill_counts = defaultdict(float)
 
-        # Choose captain AFTER team is formed using historical data
+        # Determine selected captain (already verified)
         captain_unit = self.choose_best_captain(team)
-        if captain_unit in team:
-            team.remove(captain_unit)
-            team.insert(0, captain_unit)
+        if not captain_unit:
+            return "Erosion"
+
+        captain_unit_lower = captain_unit.lower()
 
         for df in datasets_with_skills:
-            # Process brigades (every 4 rows)
             for i in range(0, len(df), 4):
                 brigade = df.iloc[i:i+4]
                 
                 for _, row in brigade.iterrows():
 
-                    # Parse team units
+                    # Parse units
                     unit_columns = [5, 7, 9, 11, 13]
                     units = [str(row[col]).strip() for col in unit_columns
-                            if col < len(row) and pd.notna(row[col]) and str(row[col]).strip()]
+                             if col < len(row) and pd.notna(row[col])]
+
+                    units_lower = [u.lower() for u in units]
 
                     # Parse captain skill (Column D / row[3])
-                    captain_skill = str(row[3]).strip() if len(row) > 3 and pd.notna(row[3]) else "Erosion"
+                    captain_skill = str(row[3]).strip() if len(row) > 3 and pd.notna(row[3]) else None
+                    if not captain_skill:
+                        continue
 
-                    # Captain match weighting
-                    if captain_unit and captain_unit in units:
-                        if units and units[0] == captain_unit:
-                            skill_counts[captain_skill] += 2
-                        else:
-                            skill_counts[captain_skill] += 1
-                    
-                    # Team similarity boost
-                    overlap = len(set(team) & set(units))
-                    if overlap >= 3:
-                        skill_counts[captain_skill] += overlap * 0.5
-        
-        # Select most likely historically-used skill
-        if skill_counts:
-            return max(skill_counts.items(), key=lambda x: x[1])[0]
-        else:
-            return "Erosion"
+                    # ONLY count skill if THIS ROW uses the selected captain
+                    if any(captain_unit_lower in u for u in units_lower):
+                        skill_counts[captain_skill] += 1.5
+
+                        # Bonus if this row has many overlapping teammates
+                        overlap = len(set(team) & set(units))
+                        if overlap >= 3:
+                            skill_counts[captain_skill] += overlap
+
+        return max(skill_counts, key=skill_counts.get) if skill_counts else "Erosion"
