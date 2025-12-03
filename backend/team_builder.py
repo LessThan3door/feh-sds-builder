@@ -530,41 +530,31 @@ class FEHTeamBuilder:
 
     
     def suggest_captain_skill(self, team, datasets_with_skills=None):
-        """Pick captain skill based ONLY on historical usage of that captain."""
-        try:
-            datasets = datasets_with_skills if datasets_with_skills else self.datasets
+        datasets = datasets_with_skills if datasets_with_skills else self.datasets
 
-            if not datasets or not team:
-                return "No dataset/tea,"
+        if not datasets or not team:
+            return "Not datasets/team"
 
-            captain_unit = team[0].strip().lower()
-            if not captain_unit:
-                return "not captain unit"
+        # Fix dict-based calls
+        if isinstance(team, dict):
+            team = team.get("team", [])
 
-            skill_counts = defaultdict(int)
+        if not isinstance(team, list) or not team:
+            return "Not is instance"
 
-            for df in datasets:
-                for _, row in df.iterrows():
-    
-                    # Captain unit = column F (index 5)
-                    if len(row) <= 5 or pd.isna(row[5]):
-                        continue
+        captain = team[0].strip().lower()
+        skill_counts = defaultdict(int)
 
-                    historical_captain = str(row[5]).strip().lower()
-                    if historical_captain != captain_unit:
-                        continue
-
-                    # Captain skill = column D (index 3)
-                    if len(row) <= 3 or pd.isna(row[3]):
-                        continue
-
-                    skill = str(row[3]).strip()
-                    if not skill:
-                        continue
-
+        for df in datasets:
+            for _, row in df.iterrows():
+                if len(row) <= 5 or pd.isna(row[5]):
+                    continue
+                if str(row[5]).strip().lower() != captain:
+                    continue
+                if len(row) <= 3 or pd.isna(row[3]):
+                    continue
+                skill = str(row[3]).strip()
+                if skill:
                     skill_counts[skill] += 1
 
-            return max(skill_counts, key=skill_counts.get) if skill_counts else "Erosion"
-
-        except Exception as e:
-            return f"ERROR: {type(e).__name__} - {str(e)}"
+        return max(skill_counts, key=skill_counts.get) if skill_counts else "End"
