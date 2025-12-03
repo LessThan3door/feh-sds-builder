@@ -76,8 +76,10 @@ function renderTeams(){
     const captainSkill = obj.captain_skill || (obj.team && obj.team.captain_skill);
     h.textContent = 'Team ' + (idx+1) + (captainSkill ? ' — ' + captainSkill : '');
     card.appendChild(h);
+
     const ol = document.createElement('ol');
-    const teamArr = Array.isArray(obj.team) ? obj.team : obj.team.team;
+    // normalize the team array whether obj.team is array or {team: [...]} or already array
+    const teamArr = Array.isArray(obj.team) ? obj.team : (Array.isArray(obj.team && obj.team.team) ? obj.team.team : []);
     (teamArr || []).forEach(u=>{
       const li=document.createElement('li'); li.className='unit-item'; li.textContent=u; li.setAttribute('draggable','true'); li.addEventListener('dragstart',ev=>{ ev.dataTransfer.setData('text/plain', JSON.stringify({unit:u, from:idx})); li.classList.add('dragging'); }); li.addEventListener('dragend',ev=>{ li.classList.remove('dragging'); }); const rem=document.createElement('button'); rem.className='tiny-btn'; rem.textContent='Remove'; rem.addEventListener('click',()=>{ pushUndo(); removeUnit(u, idx); }); li.appendChild(rem); ol.appendChild(li); }); card.appendChild(ol);
     container.appendChild(card);
