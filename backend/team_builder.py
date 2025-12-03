@@ -531,54 +531,41 @@ class FEHTeamBuilder:
     
     def suggest_captain_skill(self, team, datasets_with_skills=None):
         """Pick captain skill based ONLY on historical usage of that captain."""
+        try:
+            datasets = datasets_with_skills if datasets_with_skills else self.datasets
 
-        datasets = datasets_with_skills if datasets_with_skills else self.datasets
+            if not datasets or not team:
+                return "Erosion"
 
-        if not datasets:
-            print("DEBUG: No datasets loaded")
+            captain_unit = team[0].strip().lower()
+            if not captain_unit:
+                return "Erosion"
+
+            skill_counts = defaultdict(int)
+
+            for df in datasets:
+                for _, row in df.iterrows():
+    
+                    # Captain unit = column F (index 5)
+                    if len(row) <= 5 or pd.isna(row[5]):
+                        continue
+
+                    historical_captain = str(row[5]).strip().lower()
+                    if historical_captain != captain_unit:
+                        continue
+
+                    # Captain skill = column D (index 3)
+                    if len(row) <= 3 or pd.isna(row[3]):
+                        continue
+
+                    skill = str(row[3]).strip()
+                    if not skill:
+                        continue
+
+                    skill_counts[skill] += 1
+
+            return max(skill_counts, key=skill_counts.get) if skill_counts else "Erosion"
+
+        except Exception:
+        # NEVER allow captain skill to crash the app
             return "Erosion"
-
-        if not team:
-            print("DEBUG: Empty team")
-            return "Erosion"
-
-        captain_unit = team[0].strip()
-        captain_lower = captain_unit.lower()
-
-        skill_counts = defaultdict(int)
-
-        for df in datasets:
-            for idx, row in df.iterrows():
-
-                # Captain name (col F = index 5)
-                if len(row) <= 5:
-                    continue
-
-                if pd.isna(row[5]):
-                    continue
-
-                historical_captain = str(row[5]).strip().lower()
-
-                if historical_captain != captain_lower:
-                    continue
-
-                # Captain skill (col D = index 3)
-                if len(row) <= 3 or pd.isna(row[3]):
-                    continue
-
-                skill = str(row[3]).strip()
-
-                if not skill:
-                    continue
-
-                skill_counts[skill] += 1
-
-        if not skill_counts:
-            print(f"DEBUG: No historical rows found for {captain_unit}")
-            return "Erosion"
-
-        best_skill = max(skill_counts, key=skill_counts.get)
-
-        print(f"DEBUG: Captain {captain_unit} → skill selected = {best_skill}")
-
-        return best_skill
