@@ -118,7 +118,11 @@ function moveUnit(unit, from, to){
 
 async function regenerateFromEdits(){
   clearError();
-  const edited = current_results.map(x=>x.team.slice());
+  const edited = current_results.map(x => {
+    if (Array.isArray(x.team)) return x.team.slice();
+    if (x.team && Array.isArray(x.team.team)) return x.team.team.slice();
+    return [];
+  });
   const payload = { edited_teams: edited, banned_assignments: banned_assignments.slice(), all_available_units: last_all_available_units.slice(), must_use_units: last_must_use.slice() };
   try{
     const res = await postJSON(API_BASE + '/regenerate', payload);
