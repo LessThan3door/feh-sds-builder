@@ -102,31 +102,36 @@ class FEHTeamBuilder:
     def _calculate_correlations(self):
         """Calculate unit co-occurrence statistics across all datasets."""
         # Track how often each unit appears as captain (historical data)
-        from collections import defaultdict as _dd
-        self.captain_usage = _dd(int)
-
+        # and compute co-occurrence / usage statistics.
         self.captain_usage = defaultdict(int)
+
+        # iterate datasets with explicit index -> weight (keeps exact scoping of `weight`)
         for dataset_idx, df in enumerate(self.datasets):
-            weight = self.priority_weights[dataset_idx]
+            # ensure we have a corresponding weight (fallback to 1 if missing)
+            weight = self.priority_weights[dataset_idx] if dataset_idx < len(self.priority_weights) else 1
+
             
             # Process brigades (every 4 rows = 1 brigade)
             for i in range(0, len(df), 4):
                 brigade = df.iloc[i:i+4]
-                
+    
                 # Track which units appear in this brigade (for usage counts)
                 brigade_units = set()
-                
+    
                 # Process each team individually for co-occurrences
                 for _, row in brigade.iterrows():
-                    # Track historical captain usage (Column F / row[5])
+                    # --- TRACK HISTORICAL CAPTAIN USAGE ---
+                    # Captain unit is at Column F -> row[5] (per your sheet)
                     if len(row) > 5 and pd.notna(row[5]):
                         captain = str(row[5]).strip()
                         if captain:
                             self.captain_usage[captain] += weight
 
+                    # Now parse team unit columns
                     unit_columns = [5, 7, 9, 11, 13]
                     team_units = [str(row[col]).strip() for col in unit_columns 
-                                 if col < len(row) and pd.notna(row[col]) and str(row[col]).strip()]
+                         if col < len(row) and pd.notna(row[col]) and str(row[col]).strip()]
+
                     
                     # Add to brigade set for usage counting
                     brigade_units.update(team_units)
