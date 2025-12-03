@@ -217,7 +217,6 @@ def regenerate(req: RegenerateRequest):
             must_use_units=req.must_use_units or [],
             unit_quality_weight=0.8,
             excluded_units_per_team=excluded_units_per_team,
-            unit_quality_weight=0.8,
             fill_all_slots=True,
             debug=False
         )
