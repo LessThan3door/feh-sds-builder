@@ -101,6 +101,7 @@ class FEHTeamBuilder:
         
     def _calculate_correlations(self):
         """Calculate unit co-occurrence statistics across all datasets."""
+        self.captain_usage = defaultdict(int)
         for dataset_idx, df in enumerate(self.datasets):
             weight = self.priority_weights[dataset_idx]
             
@@ -113,6 +114,12 @@ class FEHTeamBuilder:
                 
                 # Process each team individually for co-occurrences
                 for _, row in brigade.iterrows():
+                    # Track historical captain usage (Column F / row[5])
+                    if len(row) > 5 and pd.notna(row[5]):
+                        captain = str(row[5]).strip()
+                        if captain:
+                            self.captain_usage[captain] += weight
+
                     unit_columns = [5, 7, 9, 11, 13]
                     team_units = [str(row[col]).strip() for col in unit_columns 
                                  if col < len(row) and pd.notna(row[col]) and str(row[col]).strip()]
@@ -128,7 +135,15 @@ class FEHTeamBuilder:
                 # Count each unit once per brigade for usage stats
                 for unit in brigade_units:
                     self.unit_counts[unit] += weight
+
     
+    def choose_best_captain(self, team):
+        """Pick the unit in this team that was most often a historical captain."""
+        if not hasattr(self, "captain_usage") or not self.captain_usage:
+            return team[0] if team else None
+
+        return max(team, key=lambda unit: self.captain_usage.get(unit, 0))
+
     def calculate_synergy_score(self, unit1, unit2):
         """Calculate synergy score between two units."""
         if unit1 not in self.unit_counts or unit2 not in self.unit_counts:
@@ -490,7 +505,7 @@ class FEHTeamBuilder:
             datasets_with_skills = self.datasets
         
         skill_counts = defaultdict(int)
-        captain_unit = team[0] if team else None
+        captain_unit = self.choose_best_captain(team)
         
         for df in datasets_with_skills:
             # Process brigades (every 4 rows)
