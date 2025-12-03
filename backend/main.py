@@ -226,6 +226,7 @@ def regenerate(req: RegenerateRequest):
         for team in teams:
             results.append({
                 "team": team,
+                "captain": captain,
                 "captain_skill": builder.suggest_captain_skill(team)
             })
 
