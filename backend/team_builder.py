@@ -531,6 +531,8 @@ class FEHTeamBuilder:
     
     def suggest_captain_skill(self, team, datasets_with_skills=None):
         """Suggest captain skill based on historical usage with the chosen captain."""
+        print("DEBUG suggest_captain_skill CALLED with team:", team)
+
         if not self.datasets:
             return "Erosion"
 
