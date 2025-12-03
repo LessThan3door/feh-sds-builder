@@ -517,7 +517,17 @@ class FEHTeamBuilder:
                 team.insert(0, captain_unit)
             # otherwise leave team unchanged
                         
-        return teams
+        results = []
+
+        for team in teams:
+            captain_skill = self.suggest_captain_skill(team)
+            results.append({
+                "team": team,
+                "captain_skill": captain_skill
+            })
+
+        return results
+
     
     def suggest_captain_skill(self, team, datasets_with_skills=None):
         """Suggest captain skill based on historical usage with the selected captain."""
