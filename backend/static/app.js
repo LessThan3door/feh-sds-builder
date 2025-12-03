@@ -72,8 +72,14 @@ function renderTeams(){
     card.addEventListener('dragover',e=>{ e.preventDefault(); card.classList.add('drop-target'); });
     card.addEventListener('dragleave',()=>card.classList.remove('drop-target'));
     card.addEventListener('drop',e=>{ e.preventDefault(); card.classList.remove('drop-target'); try{ const payload=JSON.parse(e.dataTransfer.getData('text/plain')); if(payload.unit){ pushUndo(); moveUnit(payload.unit, payload.from, idx); } }catch(err){} });
-    const h = document.createElement('h3'); h.textContent = 'Team ' + (idx+1) + (obj.captain_skill? ' — ' + obj.captain_skill: ''); card.appendChild(h);
-    const ol = document.createElement('ol'); (obj.team||[]).forEach(u=>{ const li=document.createElement('li'); li.className='unit-item'; li.textContent=u; li.setAttribute('draggable','true'); li.addEventListener('dragstart',ev=>{ ev.dataTransfer.setData('text/plain', JSON.stringify({unit:u, from:idx})); li.classList.add('dragging'); }); li.addEventListener('dragend',ev=>{ li.classList.remove('dragging'); }); const rem=document.createElement('button'); rem.className='tiny-btn'; rem.textContent='Remove'; rem.addEventListener('click',()=>{ pushUndo(); removeUnit(u, idx); }); li.appendChild(rem); ol.appendChild(li); }); card.appendChild(ol);
+    const h = document.createElement('h3');
+    const captainSkill = obj.captain_skill || (obj.team && obj.team.captain_skill);
+    h.textContent = 'Team ' + (idx+1) + (captainSkill ? ' — ' + captainSkill : '');
+    card.appendChild(h);
+    const ol = document.createElement('ol');
+    const teamArr = Array.isArray(obj.team) ? obj.team : obj.team.team;
+    (teamArr || []).forEach(u=>{
+      const li=document.createElement('li'); li.className='unit-item'; li.textContent=u; li.setAttribute('draggable','true'); li.addEventListener('dragstart',ev=>{ ev.dataTransfer.setData('text/plain', JSON.stringify({unit:u, from:idx})); li.classList.add('dragging'); }); li.addEventListener('dragend',ev=>{ li.classList.remove('dragging'); }); const rem=document.createElement('button'); rem.className='tiny-btn'; rem.textContent='Remove'; rem.addEventListener('click',()=>{ pushUndo(); removeUnit(u, idx); }); li.appendChild(rem); ol.appendChild(li); }); card.appendChild(ol);
     container.appendChild(card);
   });
   // controls
@@ -85,8 +91,28 @@ function renderTeams(){
   container.appendChild(controls);
 }
 
-function removeUnit(unit, team){ current_results[team].team = current_results[team].team.filter(u=>u!==unit); banned_assignments.push({unit:unit, team:team}); renderTeams(); }
-function moveUnit(unit, from, to){ current_results[from].team = current_results[from].team.filter(u=>u!==unit); if(!current_results[to].team.includes(unit)) current_results[to].team.push(unit); banned_assignments.push({unit:unit, team:from}); renderTeams(); }
+function getTeamArray(obj){
+  return Array.isArray(obj.team) ? obj.team : obj.team.team;
+}
+
+function removeUnit(unit, team){
+  const arr = getTeamArray(current_results[team]);
+  current_results[team].team = arr.filter(u=>u!==unit);
+  banned_assignments.push({unit:unit, team:team});
+  renderTeams();
+}
+
+function moveUnit(unit, from, to){
+  const fromArr = getTeamArray(current_results[from]);
+  const toArr = getTeamArray(current_results[to]);
+
+  current_results[from].team = fromArr.filter(u=>u!==unit);
+  if(!toArr.includes(unit)) toArr.push(unit);
+
+  current_results[to].team = toArr;
+  banned_assignments.push({unit:unit, team:from});
+  renderTeams();
+}
 
 async function regenerateFromEdits(){
   clearError();
