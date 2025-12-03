@@ -529,42 +529,37 @@ class FEHTeamBuilder:
         return results
 
     
-    def suggest_captain_skill(self, team):
+   def suggest_captain_skill(self, team, datasets_with_skills=None):
         """Pick captain skill based ONLY on historical usage of that captain."""
-        if not self.datasets:
+
+        datasets = datasets_with_skills or self.datasets
+
+        if not datasets:
             return "Erosion"
 
         if not team:
             return "Erosion"
 
-        captain_unit = team[0]   # already selected earlier
-        captain_lower = captain_unit.strip().lower()
-
+        captain = team[0].strip().lower()
         skill_counts = defaultdict(int)
 
-        for df in self.datasets:
+        for df in datasets:
             for _, row in df.iterrows():
 
-                # Column F (5) = Captain unit
+                # Column F = captain
                 if len(row) <= 5 or pd.isna(row[5]):
                     continue
 
                 historical_captain = str(row[5]).strip().lower()
-
-                if historical_captain != captain_lower:
+                if historical_captain != captain:
                     continue
 
-                # Column D (3) = Captain skill
+                # Column D = skill
                 if len(row) <= 3 or pd.isna(row[3]):
                     continue
 
                 skill = str(row[3]).strip()
-                if not skill:
-                    continue
-    
-                skill_counts[skill] += 1
+                if skill:
+                    skill_counts[skill] += 1
 
-        if skill_counts:
-            return max(skill_counts.items(), key=lambda x: x[1])[0]
-        else:
-            return "Erosion"
+        return max(skill_counts, key=skill_counts.get) if skill_counts else "Erosion"
