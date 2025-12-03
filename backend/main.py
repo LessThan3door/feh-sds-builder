@@ -172,9 +172,11 @@ def generate(req: GenerateRequest):
 
 @app.post("/regenerate")
 def regenerate(req: RegenerateRequest):
-    """Regenerate teams after user edits (removals/moves)"""
+    """Rebuild teams after manual edits"""
     try:
-        # Get CSV path if provided
+        # --------------------------
+        # Load CSV
+        # --------------------------
         csv_paths = []
         if req.csv_filename:
             csv_path = UPLOAD_DIR / req.csv_filename
@@ -183,49 +185,68 @@ def regenerate(req: RegenerateRequest):
 
         if not csv_paths:
             default_csv = BASE_DIR.parent / "dataset1.csv"
-            if default_csv.exists():
-                csv_paths = [str(default_csv)]
-            else:
-                raise RuntimeError(f"dataset1.csv not found at {default_csv}")
+            if not default_csv.exists():
+                raise RuntimeError("dataset1.csv not found")
+            csv_paths = [str(default_csv)]
 
-        # Initialize builder
         builder = FEHTeamBuilder(
-            csv_file_path=csv_paths if csv_paths else [],
-            priority_weights=[1.0] if csv_paths else [],
+            csv_file_path=csv_paths,
+            priority_weights=[1.0] * len(csv_paths),
             skip_header_rows=3
         )
 
-        # Process banned assignments
-        excluded_units_per_team = [[], [], [], []]
+        # --------------------------
+        # 1. Collect removed units
+        # --------------------------
+        removed_units = set()
         for ban in req.banned_assignments:
-            team_idx = ban.get("team")
-            unit = ban.get("unit")
-            if team_idx is not None and unit:
-                excluded_units_per_team[team_idx].append(unit)
+            u = ban.get("unit")
+            if u:
+                removed_units.add(u.strip().lower())
 
-        # Seeds from user edits
-        seed_units = [team[:] for team in req.edited_teams]
+        # --------------------------
+        # 2. Filter available pool
+        # --------------------------
+        available_units = [
+            u for u in req.all_available_units
+            if u.strip().lower() not in removed_units
+        ]
 
-     
+        # --------------------------
+        # 3. Seeds from surviving units
+        # --------------------------
+        seed_units = []
+        for team in req.edited_teams:
+            cleaned = [
+                u for u in team
+                if u.strip().lower() not in removed_units
+            ]
+            seed_units.append(cleaned)
 
-        # REBUILD
+        # --------------------------
+        # 4. Rebuild intelligently
+        # --------------------------
         teams = builder.build_multiple_teams(
-            available_units=req.all_available_units,  # FIXED
+            available_units=available_units,
             num_teams=4,
             team_size=5,
             seed_units_per_team=seed_units,
             must_use_units=req.must_use_units or [],
             unit_quality_weight=0.8,
-            excluded_units_per_team=excluded_units_per_team,
+            excluded_units_per_team=[[] for _ in range(4)],
             fill_all_slots=True,
             debug=False
         )
 
-        # OUTPUT CLEAN RESULT
+        # --------------------------
+        # 5. Format output cleanly
+        # --------------------------
         results = []
         for team in teams:
-            # team might be returned as a dict {"team": [...], ...} or as a plain list.
-            team_list = team["team"] if isinstance(team, dict) else team
+            if isinstance(team, dict):
+                team_list = team["team"]
+            else:
+                team_list = team
 
             captain = builder.choose_best_captain(team_list)
             skill = builder.suggest_captain_skill(team_list)
@@ -234,7 +255,8 @@ def regenerate(req: RegenerateRequest):
                 "team": team_list,
                 "captain": captain,
                 "captain_skill": skill
-               })
+            })
+
         return results
 
     except Exception as e:
