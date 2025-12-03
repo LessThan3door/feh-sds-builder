@@ -529,7 +529,7 @@ class FEHTeamBuilder:
         return results
 
     
-    def suggest_captain_skill(self, team, datasets_with_skills=None):
+    def suggest_captain_skill(self, team):
         """Pick captain skill based ONLY on historical usage of that captain."""
         try:
             datasets = datasets_with_skills if datasets_with_skills else self.datasets
@@ -566,6 +566,5 @@ class FEHTeamBuilder:
 
             return max(skill_counts, key=skill_counts.get) if skill_counts else "Erosion"
 
-        except Exception:
-        # NEVER allow captain skill to crash the app
-            return "Exception"
+        except Exception as e:
+            return f"ERROR: {type(e).__name__} - {str(e)}"
