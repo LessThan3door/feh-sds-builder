@@ -529,7 +529,7 @@ class FEHTeamBuilder:
         return results
 
     
-    def suggest_captain_skill(self, team):
+    def suggest_captain_skill(self, team, datasets_with_skills=None):
         """Pick captain skill based ONLY on historical usage of that captain."""
         try:
             datasets = datasets_with_skills if datasets_with_skills else self.datasets
