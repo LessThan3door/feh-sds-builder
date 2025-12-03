@@ -180,65 +180,65 @@ def regenerate(req: RegenerateRequest):
             csv_path = UPLOAD_DIR / req.csv_filename
             if csv_path.exists():
                 csv_paths = [str(csv_path)]
-        
-        # Use default CSV if exists
-        if not csv_paths:
-            # Correct dataset location: backend/.. = project root
-            default_csv = BASE_DIR.parent / "dataset1.csv"
 
+        if not csv_paths:
+            default_csv = BASE_DIR.parent / "dataset1.csv"
             if default_csv.exists():
                 csv_paths = [str(default_csv)]
             else:
                 raise RuntimeError(f"dataset1.csv not found at {default_csv}")
 
-        
         # Initialize builder
         builder = FEHTeamBuilder(
             csv_file_path=csv_paths if csv_paths else [],
             priority_weights=[1.0] if csv_paths else [],
             skip_header_rows=3
         )
-        
-        # Process banned assignments into excluded_units_per_team
+
+        # Process banned assignments
         excluded_units_per_team = [[], [], [], []]
         for ban in req.banned_assignments:
             team_idx = ban.get("team")
             unit = ban.get("unit")
             if team_idx is not None and unit:
                 excluded_units_per_team[team_idx].append(unit)
-        
-        # Use edited teams as seeds (remaining units after removals)
+
+        # Seeds from user edits
         seed_units = [team[:] for team in req.edited_teams]
-        
-        # Build teams with exclusions
+
+        # ✅ REMOVE ALREADY PLACED UNITS
+        placed_units = set()
+        for team in seed_units:
+            placed_units.update(team)
+
+        remaining_units = [u for u in req.all_available_units if u not in placed_units]
+
+        # ✅ REBUILD
         teams = builder.build_multiple_teams(
-            available_units=req.all_available_units,
+            available_units=remaining_units,  # FIXED
             num_teams=4,
             team_size=5,
             seed_units_per_team=seed_units,
             must_use_units=req.must_use_units or [],
             unit_quality_weight=0.8,
             excluded_units_per_team=excluded_units_per_team,
+            fill_all_slots=True,
             debug=False
         )
-        
-        # Format response
+
+        # ✅ OUTPUT CLEAN RESULT
         results = []
         for team in teams:
-            captain = builder.choose_best_captain(team)
-            skill = builder.suggest_captain_skill(team)
-
             results.append({
                 "team": team,
-                "captain": captain,
-                "captain_skill": skill
+                "captain_skill": builder.suggest_captain_skill(team)
             })
 
         return results
 
-        
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error regenerating teams: {str(e)}")
+
 
 
 @app.post("/upload-csv")
