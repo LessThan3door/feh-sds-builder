@@ -113,12 +113,6 @@ class FEHTeamBuilder:
                 
                 # Process each team individually for co-occurrences
                 for _, row in brigade.iterrows():
-                    # Column index for captain unit
-                    captain = str(row[5]).strip() if len(row) > 5 and pd.notna(row[5]) else None
-
-                    if captain:
-                        self.captain_usage[captain] += weight
-
                     unit_columns = [5, 7, 9, 11, 13]
                     team_units = [str(row[col]).strip() for col in unit_columns 
                                  if col < len(row) and pd.notna(row[col]) and str(row[col]).strip()]
@@ -134,9 +128,7 @@ class FEHTeamBuilder:
                 # Count each unit once per brigade for usage stats
                 for unit in brigade_units:
                     self.unit_counts[unit] += weight
-                        # Track captain usage frequency
-            self.captain_usage = defaultdict(int)
-
+    
     def calculate_synergy_score(self, unit1, unit2):
         """Calculate synergy score between two units."""
         if unit1 not in self.unit_counts or unit2 not in self.unit_counts:
@@ -488,13 +480,7 @@ class FEHTeamBuilder:
                         print(f"WARNING: Could not place must-use unit '{must_use_unit}'")
         
         return teams
-    def choose_best_captain(self, team):
-        """Pick team member most often used as captain historically."""
-        if not hasattr(self, "captain_usage") or not self.captain_usage:
-            return team[0] if team else None
-
-        return max(team, key=lambda u: self.captain_usage.get(u, 0))
-
+    
     def suggest_captain_skill(self, team, datasets_with_skills=None):
         """Suggest captain skill based on team composition."""
         if not self.datasets:
@@ -504,8 +490,7 @@ class FEHTeamBuilder:
             datasets_with_skills = self.datasets
         
         skill_counts = defaultdict(int)
-        captain_unit = self.choose_best_captain(team)
-
+        captain_unit = team[0] if team else None
         
         for df in datasets_with_skills:
             # Process brigades (every 4 rows)
