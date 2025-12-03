@@ -529,70 +529,41 @@ class FEHTeamBuilder:
         return results
 
     
-    def suggest_captain_skill(self, team, datasets_with_skills=None):
-        """Suggest captain skill based on historical usage with the chosen captain."""
-        print("DEBUG suggest_captain_skill CALLED with team:", team)
-
+    def suggest_captain_skill(self, team):
+        """Pick captain skill based ONLY on historical usage of that captain."""
         if not self.datasets:
             return "Erosion"
 
-        if not datasets_with_skills:
-            datasets_with_skills = self.datasets
-
-        skill_counts = defaultdict(float)
-
-        # Choose best captain using historical usage
-        captain_unit = self.choose_best_captain(team)
-        if not captain_unit:
+        if not team:
             return "Erosion"
 
+        captain_unit = team[0]   # already selected earlier
         captain_lower = captain_unit.strip().lower()
 
-        for dataset_idx, df in enumerate(datasets_with_skills):
-            weight = self.priority_weights[dataset_idx]
+        skill_counts = defaultdict(int)
 
-            # Process brigades (4 rows = 1 SDS match)
-            for i in range(0, len(df), 4):
-                brigade = df.iloc[i:i+4]
+        for df in self.datasets:
+            for _, row in df.iterrows():
 
-                for _, row in brigade.iterrows():
+                # Column F (5) = Captain unit
+                if len(row) <= 5 or pd.isna(row[5]):
+                    continue
 
-                    # Column F = Captain unit
-                    if len(row) <= 5 or pd.isna(row[5]):
-                        continue
+                historical_captain = str(row[5]).strip().lower()
 
-                    historical_captain = str(row[5]).strip().lower()
+                if historical_captain != captain_lower:
+                    continue
 
-                    # Only care if THIS unit was historical captain
-                    if historical_captain != captain_lower:
-                        continue
+                # Column D (3) = Captain skill
+                if len(row) <= 3 or pd.isna(row[3]):
+                    continue
 
-                    # Column D = Captain Skill
-                    if len(row) <= 3 or pd.isna(row[3]):
-                        continue
-
-                    skill = str(row[3]).strip()
-                    if not skill:
-                        continue
-
-                    # Team units from that historical row
-                    unit_columns = [5, 7, 9, 11, 13]
-                    units = [
-                        str(row[col]).strip()
-                        for col in unit_columns
-                        if col < len(row) and pd.notna(row[col])
-                    ]
-
-                    # Strong base score if captain matches
-                    score = 4.0
+                skill = str(row[3]).strip()
+                if not skill:
+                    continue
     
-                    # Bonus for overlap with your current team
-                    overlap = len(set(team) & set(units))
-                    score += overlap * 1.5
+                skill_counts[skill] += 1
 
-                    # Apply dataset weight
-                    skill_counts[skill] += score * weight
-    
         if skill_counts:
             return max(skill_counts.items(), key=lambda x: x[1])[0]
         else:
