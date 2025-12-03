@@ -530,54 +530,54 @@ class FEHTeamBuilder:
 
     
     def suggest_captain_skill(self, team, datasets_with_skills=None):
-    """Suggest captain skill based on historical usage with the chosen captain."""
-    if not self.datasets:
-        return "Erosion"
+        """Suggest captain skill based on historical usage with the chosen captain."""
+        if not self.datasets:
+            return "Erosion"
 
-    if not datasets_with_skills:
-        datasets_with_skills = self.datasets
+        if not datasets_with_skills:
+            datasets_with_skills = self.datasets
 
-    skill_counts = defaultdict(float)
+        skill_counts = defaultdict(float)
 
-    captain_unit = self.choose_best_captain(team)
-    if not captain_unit:
-        return "Erosion"
+        captain_unit = self.choose_best_captain(team)
+        if not captain_unit:
+            return "Erosion"
 
-    captain_lower = captain_unit.lower()
+        captain_lower = captain_unit.lower()
 
-    for dataset_idx, df in enumerate(datasets_with_skills):
-        weight = self.priority_weights[dataset_idx]
+        for dataset_idx, df in enumerate(datasets_with_skills):
+            weight = self.priority_weights[dataset_idx]
 
-        for i in range(0, len(df), 4):
-            brigade = df.iloc[i:i+4]
+            for i in range(0, len(df), 4):
+                brigade = df.iloc[i:i+4]
 
-            for _, row in brigade.iterrows():
+                for _, row in brigade.iterrows():
 
-                # Column F = Captain
-                historical_captain = str(row[5]).strip().lower() if len(row) > 5 and pd.notna(row[5]) else ""
-                if historical_captain != captain_lower:
-                    continue
+                    # Column F = Captain
+                    historical_captain = str(row[5]).strip().lower() if len(row) > 5 and pd.notna(row[5]) else ""
+                    if historical_captain != captain_lower:
+                        continue
 
-                # Column D = Captain Skill
-                skill = str(row[3]).strip() if len(row) > 3 and pd.notna(row[3]) else None
-                if not skill:
-                    continue
+                    # Column D = Captain Skill
+                    skill = str(row[3]).strip() if len(row) > 3 and pd.notna(row[3]) else None
+                    if not skill:
+                        continue
 
-                # Column F,H,J,L,N = Team Units
-                unit_columns = [5, 7, 9, 11, 13]
-                units = [
-                    str(row[col]).strip()
-                    for col in unit_columns
-                    if col < len(row) and pd.notna(row[col])
-                ]
+                    # Column F,H,J,L,N = Team Units
+                    unit_columns = [5, 7, 9, 11, 13]
+                    units = [
+                        str(row[col]).strip()
+                        for col in unit_columns
+                        if col < len(row) and pd.notna(row[col])
+                    ]
 
-                # Base weight when this unit IS the historical captain
-                score = 3.0
+                    # Base weight when this unit IS the historical captain
+                    score = 3.0
 
-                # Boost for unit overlap
-                overlap = len(set(team) & set(units))
-                score += overlap
+                    # Boost for unit overlap
+                    overlap = len(set(team) & set(units))
+                    score += overlap
 
-                skill_counts[skill] += score * weight
+                    skill_counts[skill] += score * weight
 
-    return max(skill_counts, key=skill_counts.get) if skill_counts else "Erosion"
+        return max(skill_counts, key=skill_counts.get) if skill_counts else "Erosion"
