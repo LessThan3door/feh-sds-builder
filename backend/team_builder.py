@@ -101,6 +101,10 @@ class FEHTeamBuilder:
         
     def _calculate_correlations(self):
         """Calculate unit co-occurrence statistics across all datasets."""
+        # Track how often each unit appears as captain (historical data)
+        from collections import defaultdict as _dd
+        self.captain_usage = _dd(int)
+
         self.captain_usage = defaultdict(int)
         for dataset_idx, df in enumerate(self.datasets):
             weight = self.priority_weights[dataset_idx]
@@ -513,6 +517,10 @@ class FEHTeamBuilder:
                 brigade = df.iloc[i:i+4]
                 
                 for _, row in brigade.iterrows():
+                    if len(row) > 5 and pd.notna(row[5]):
+                        captain = str(row[5]).strip()
+                        if captain:
+                            self.captain_usage[captain] += weight
                     unit_columns = [5, 7, 9, 11, 13]
                     units = [str(row[col]).strip() for col in unit_columns 
                             if col < len(row) and pd.notna(row[col]) and str(row[col]).strip()]
