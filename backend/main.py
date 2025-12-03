@@ -206,27 +206,23 @@ def regenerate(req: RegenerateRequest):
         # Seeds from user edits
         seed_units = [team[:] for team in req.edited_teams]
 
-        # ✅ REMOVE ALREADY PLACED UNITS
-        placed_units = set()
-        for team in seed_units:
-            placed_units.update(team)
+     
 
-        remaining_units = [u for u in req.all_available_units if u not in placed_units]
-
-        # ✅ REBUILD
+        # REBUILD
         teams = builder.build_multiple_teams(
-            available_units=remaining_units,  # FIXED
+            available_units=req.all_available_units,  # FIXED
             num_teams=4,
             team_size=5,
             seed_units_per_team=seed_units,
             must_use_units=req.must_use_units or [],
             unit_quality_weight=0.8,
             excluded_units_per_team=excluded_units_per_team,
+            unit_quality_weight=0.8,
             fill_all_slots=True,
             debug=False
         )
 
-        # ✅ OUTPUT CLEAN RESULT
+        # OUTPUT CLEAN RESULT
         results = []
         for team in teams:
             results.append({
@@ -299,25 +295,7 @@ def debug_csv():
             reverse=True
         )[:20]
         
-        # Test specific synergies
-        sakura_camilla_cooccur = builder.unit_cooccurrence["Sakura Legendary"].get("Camilla Young", 0)
-        sakura_chrom_cooccur = builder.unit_cooccurrence["Sakura Legendary"].get("Chrom Feroxi", 0)
-        
-        camilla_heimdallr_cooccur = builder.unit_cooccurrence["Camilla Young"].get("Heimdallr Mythic", 0)
-        camilla_alfador_cooccur = builder.unit_cooccurrence["Camilla Young"].get("Alfador Mythic", 0)
-        camilla_thorr_cooccur = builder.unit_cooccurrence["Camilla Young"].get("Thorr Summer Duo", 0)
-        
-        sakura_camilla_synergy = builder.calculate_synergy_score("Sakura Legendary", "Camilla Young")
-        sakura_chrom_synergy = builder.calculate_synergy_score("Sakura Legendary", "Chrom Feroxi")
-        
-        camilla_heimdallr_synergy = builder.calculate_synergy_score("Camilla Young", "Heimdallr Mythic")
-        camilla_alfador_synergy = builder.calculate_synergy_score("Camilla Young", "Alfador Mythic")
-        camilla_thorr_synergy = builder.calculate_synergy_score("Camilla Young", "Thorr Summer Duo")
-        
-        # Test conditional synergy (what score would each get when joining Team 1 with just Sakura?)
-        camilla_conditional = builder.calculate_conditional_synergy("Camilla Young", ["Sakura Legendary"])
-        chrom_conditional = builder.calculate_conditional_synergy("Chrom Feroxi", ["Sakura Legendary"])
-
+       
         # DEBUG: show top captain usage if available
         captain_usage = getattr(builder, "captain_usage", {})
         top_captains = sorted(captain_usage.items(), key=lambda x: x[1], reverse=True)[:20]
