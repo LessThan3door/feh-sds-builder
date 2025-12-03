@@ -309,6 +309,12 @@ def debug_csv():
         # Test conditional synergy (what score would each get when joining Team 1 with just Sakura?)
         camilla_conditional = builder.calculate_conditional_synergy("Camilla Young", ["Sakura Legendary"])
         chrom_conditional = builder.calculate_conditional_synergy("Chrom Feroxi", ["Sakura Legendary"])
+
+        # DEBUG: show top captain usage if available
+        captain_usage = getattr(builder, "captain_usage", {})
+        top_captains = sorted(captain_usage.items(), key=lambda x: x[1], reverse=True)[:20]
+        print("DEBUG top_captains:", top_captains)
+
         
         return {
             "csv_path": csv_paths[0],
@@ -329,7 +335,8 @@ def debug_csv():
             "camilla_alfador_synergy": camilla_alfador_synergy,
             "camilla_thorr_synergy": camilla_thorr_synergy,
             "camilla_conditional_with_sakura": camilla_conditional,
-            "chrom_conditional_with_sakura": chrom_conditional
+            "chrom_conditional_with_sakura": chrom_conditional,
+            "DEBUG top_captains:": top_captains
         }
     except Exception as e:
         import traceback
