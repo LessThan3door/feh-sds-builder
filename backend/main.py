@@ -322,7 +322,13 @@ def debug_csv():
         captain_usage = getattr(builder, "captain_usage", {})
         top_captains = sorted(captain_usage.items(), key=lambda x: x[1], reverse=True)[:20]
         print("DEBUG top_captains:", top_captains)
-
+        
+        debug_csv["captain_debug"] = []
+        for t in results:
+            debug_csv["captain_debug"].append({
+            "captain": t["team"][0] if t["team"] else None,
+            "captain_skill": t["captain_skill"]
+            })
         
         return {
             "csv_path": csv_paths[0],
@@ -344,7 +350,9 @@ def debug_csv():
             "camilla_thorr_synergy": camilla_thorr_synergy,
             "camilla_conditional_with_sakura": camilla_conditional,
             "chrom_conditional_with_sakura": chrom_conditional,
-            "DEBUG top_captains:": top_captains
+            "DEBUG top_captains:": top_captains,
+            "debug_csv": debug_csv
+            
         }
     except Exception as e:
         import traceback
