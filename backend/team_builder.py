@@ -535,11 +535,11 @@ class FEHTeamBuilder:
             datasets = datasets_with_skills if datasets_with_skills else self.datasets
 
             if not datasets or not team:
-                return "Oops"
+                return "No dataset/tea,"
 
             captain_unit = team[0].strip().lower()
             if not captain_unit:
-                return "Oops"
+                return "not captain unit"
 
             skill_counts = defaultdict(int)
 
@@ -568,4 +568,4 @@ class FEHTeamBuilder:
 
         except Exception:
         # NEVER allow captain skill to crash the app
-            return "Oops"
+            return "Exception"
