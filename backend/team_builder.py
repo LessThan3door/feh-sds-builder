@@ -539,31 +539,41 @@ class FEHTeamBuilder:
 
         skill_counts = defaultdict(float)
 
+        # Choose best captain using historical usage
         captain_unit = self.choose_best_captain(team)
         if not captain_unit:
             return "Erosion"
 
-        captain_lower = captain_unit.lower()
+        captain_lower = captain_unit.strip().lower()
 
         for dataset_idx, df in enumerate(datasets_with_skills):
             weight = self.priority_weights[dataset_idx]
 
+            # Process brigades (4 rows = 1 SDS match)
             for i in range(0, len(df), 4):
                 brigade = df.iloc[i:i+4]
 
                 for _, row in brigade.iterrows():
 
-                    # Column F = Captain
-                    historical_captain = str(row[5]).strip().lower() if len(row) > 5 and pd.notna(row[5]) else ""
+                    # Column F = Captain unit
+                    if len(row) <= 5 or pd.isna(row[5]):
+                        continue
+
+                    historical_captain = str(row[5]).strip().lower()
+
+                    # Only care if THIS unit was historical captain
                     if historical_captain != captain_lower:
                         continue
 
                     # Column D = Captain Skill
-                    skill = str(row[3]).strip() if len(row) > 3 and pd.notna(row[3]) else None
+                    if len(row) <= 3 or pd.isna(row[3]):
+                        continue
+
+                    skill = str(row[3]).strip()
                     if not skill:
                         continue
 
-                    # Column F,H,J,L,N = Team Units
+                    # Team units from that historical row
                     unit_columns = [5, 7, 9, 11, 13]
                     units = [
                         str(row[col]).strip()
@@ -571,13 +581,17 @@ class FEHTeamBuilder:
                         if col < len(row) and pd.notna(row[col])
                     ]
 
-                    # Base weight when this unit IS the historical captain
-                    score = 3.0
-
-                    # Boost for unit overlap
+                    # Strong base score if captain matches
+                    score = 4.0
+    
+                    # Bonus for overlap with your current team
                     overlap = len(set(team) & set(units))
-                    score += overlap
+                    score += overlap * 1.5
 
+                    # Apply dataset weight
                     skill_counts[skill] += score * weight
-
-        return max(skill_counts, key=skill_counts.get) if skill_counts else "Erosion"
+    
+        if skill_counts:
+            return max(skill_counts.items(), key=lambda x: x[1])[0]
+        else:
+            return "Erosion"
