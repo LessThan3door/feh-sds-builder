@@ -517,6 +517,9 @@ class FEHTeamBuilder:
 
         # Choose captain AFTER team is formed using historical data
         captain_unit = self.choose_best_captain(team)
+        if captain_unit in team:
+            team.remove(captain_unit)
+            team.insert(0, captain_unit)
 
         for df in datasets_with_skills:
             # Process brigades (every 4 rows)
