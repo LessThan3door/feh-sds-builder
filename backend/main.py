@@ -323,35 +323,18 @@ def debug_csv():
         top_captains = sorted(captain_usage.items(), key=lambda x: x[1], reverse=True)[:20]
         print("DEBUG top_captains:", top_captains)
         
-        debug_csv["captain_debug"] = []
+        debug_data = {}
+        debug_data["captain_debug"] = []
+
         for t in results:
-            debug_csv["captain_debug"].append({
+            debug_data["captain_debug"].append({
             "captain": t["team"][0] if t["team"] else None,
             "captain_skill": t["captain_skill"]
             })
         
         return {
-            "csv_path": csv_paths[0],
-            "total_units": len(builder.unit_counts),
-            "total_brigades": len(builder.datasets[0]) // 4 if builder.datasets else 0,
-            "top_20_units": [{"unit": u, "count": c} for u, c in top_units],
-            "sakura_usage": builder.unit_counts.get("Sakura Legendary", 0),
-            "camilla_usage": builder.unit_counts.get("Camilla Young", 0),
-            "chrom_usage": builder.unit_counts.get("Chrom Feroxi", 0),
-            "sakura_camilla_cooccur": sakura_camilla_cooccur,
-            "sakura_chrom_cooccur": sakura_chrom_cooccur,
-            "camilla_heimdallr_cooccur": camilla_heimdallr_cooccur,
-            "camilla_alfador_cooccur": camilla_alfador_cooccur,
-            "camilla_thorr_cooccur": camilla_thorr_cooccur,
-            "sakura_camilla_synergy": sakura_camilla_synergy,
-            "sakura_chrom_synergy": sakura_chrom_synergy,
-            "camilla_heimdallr_synergy": camilla_heimdallr_synergy,
-            "camilla_alfador_synergy": camilla_alfador_synergy,
-            "camilla_thorr_synergy": camilla_thorr_synergy,
-            "camilla_conditional_with_sakura": camilla_conditional,
-            "chrom_conditional_with_sakura": chrom_conditional,
             "DEBUG top_captains:": top_captains,
-            "debug_csv": debug_csv
+            "debug_csv": debug_data
             
         }
     except Exception as e:
