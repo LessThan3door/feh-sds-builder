@@ -514,33 +514,38 @@ class FEHTeamBuilder:
             datasets_with_skills = self.datasets
         
         skill_counts = defaultdict(int)
+
+        # Choose captain AFTER team is formed using historical data
         captain_unit = self.choose_best_captain(team)
-        
+
         for df in datasets_with_skills:
             # Process brigades (every 4 rows)
             for i in range(0, len(df), 4):
                 brigade = df.iloc[i:i+4]
                 
                 for _, row in brigade.iterrows():
-                    if len(row) > 5 and pd.notna(row[5]):
-                        captain = str(row[5]).strip()
-                        if captain:
-                            self.captain_usage[captain] += weight
+
+                    # Parse team units
                     unit_columns = [5, 7, 9, 11, 13]
-                    units = [str(row[col]).strip() for col in unit_columns 
+                    units = [str(row[col]).strip() for col in unit_columns
                             if col < len(row) and pd.notna(row[col]) and str(row[col]).strip()]
+
+                    # Parse captain skill (Column D / row[3])
                     captain_skill = str(row[3]).strip() if len(row) > 3 and pd.notna(row[3]) else "Erosion"
-                    
+
+                    # Captain match weighting
                     if captain_unit and captain_unit in units:
-                        if units[0] == captain_unit:
+                        if units and units[0] == captain_unit:
                             skill_counts[captain_skill] += 2
                         else:
                             skill_counts[captain_skill] += 1
                     
+                    # Team similarity boost
                     overlap = len(set(team) & set(units))
                     if overlap >= 3:
                         skill_counts[captain_skill] += overlap * 0.5
         
+        # Select most likely historically-used skill
         if skill_counts:
             return max(skill_counts.items(), key=lambda x: x[1])[0]
         else:
