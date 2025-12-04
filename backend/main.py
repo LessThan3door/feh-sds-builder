@@ -46,6 +46,8 @@ class GenerateRequest(BaseModel):
     forbidden_pairs: Optional[List[List[str]]] = None
     required_pairs: Optional[List[List[str]]] = None
     csv_filename: Optional[str] = None
+    num_teams: int = 4
+
 
 
 class RegenerateRequest(BaseModel):
@@ -54,6 +56,7 @@ class RegenerateRequest(BaseModel):
     all_available_units: List[str]
     must_use_units: Optional[List[str]] = None
     csv_filename: Optional[str] = None
+    num_teams: int
 
 @app.get("/top-units")
 def get_top_units(n: int = 50):
@@ -141,7 +144,7 @@ def generate(req: GenerateRequest):
         # Build teams
         teams = builder.build_multiple_teams(
             available_units=req.available_units,
-            num_teams=4,
+            num_teams=req.num_teams,
             team_size=5,
             seed_units_per_team=req.seed_units or [[], [], [], []],
             forbidden_pairs=forbidden_pairs,
@@ -228,7 +231,7 @@ def regenerate(req: RegenerateRequest):
         # --------------------------
         teams = builder.build_multiple_teams(
             available_units=available_units,
-            num_teams=4,
+            num_teams=req.num_teams,
             team_size=5,
             seed_units_per_team=seed_units,
             must_use_units=req.must_use_units or [],
