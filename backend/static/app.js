@@ -139,11 +139,13 @@ async function regenerateFromEdits(){
       }
     });
   });
-
+  const used = new Set(edited.flat());
+  const available = last_all_available_units.filter(u => !used.has(u));
+  
   const payload = {
     edited_teams: edited,
     banned_assignments: banned,
-    all_available_units: last_all_available_units.slice(),
+    all_available_units: available,
     must_use_units: last_must_use.slice(),
     num_teams: edited.length
   };
