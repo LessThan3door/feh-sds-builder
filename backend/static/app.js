@@ -109,12 +109,12 @@ function moveUnit(unit, from, to){
   const toArr = getTeamArray(current_results[to]);
 
   current_results[from].team = fromArr.filter(u=>u!==unit);
-  if(!toArr.includes(unit)) toArr.push(unit);
 
-  current_results[to].team = toArr;
-  banned_assignments.push({unit:unit, team:from});
+  if(!toArr.includes(unit))
+      current_results[to].team.push(unit);
   renderTeams();
 }
+
 
 async function regenerateFromEdits() {
   clearError();
