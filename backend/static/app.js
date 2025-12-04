@@ -118,31 +118,46 @@ function moveUnit(unit, from, to){
 
 async function regenerateFromEdits(){
   clearError();
-  const edited = current_results.map(x => {
-    if (Array.isArray(x.team)) return x.team.slice();
-    if (x.team && Array.isArray(x.team.team)) return x.team.team.slice();
-    return [];
-  });
-  // LOCK moved units in their teams
-  const moved_bans = [];
-  edited.forEach((team, teamIdx) => {
-    team.forEach(unit => {
-      for (let other = 0; other < edited.length; other++) {
-        if (other !== teamIdx) {
-          moved_bans.push({ unit, team: other });
-        }
+
+  // CURRENT teams
+  const edited = current_results.map(x => Array.isArray(x.team) ? x.team.slice() : []);
+
+  // original generated teams are stored in undo_stack[0]
+  const baseline = undo_stack.length ? undo_stack[0].results : [];
+
+  let banned = [];
+
+  // Compare baseline teams to current teams to detect removals & moves
+  baseline.forEach((baseTeam, teamIdx) => {
+    const original = baseTeam.team || [];
+    const current = edited[teamIdx] || [];
+
+    original.forEach(unit => {
+      if (!current.includes(unit)) {
+        // user removed or moved this unit ⇒ ban it from this team
+        banned.push({ unit, team: teamIdx });
       }
     });
   });
 
-  const numTeams = current_results.length;
-  const payload = { edited_teams: edited, banned_assignments: banned_assignments.concat(moved_bans), all_available_units: last_all_available_units.slice(), must_use_units: last_must_use.slice(), num_teams: numTeams };
-  try{
+  const payload = {
+    edited_teams: edited,
+    banned_assignments: banned,
+    all_available_units: last_all_available_units.slice(),
+    must_use_units: last_must_use.slice(),
+    num_teams: edited.length
+  };
+
+  try {
     const res = await postJSON(API_BASE + '/regenerate', payload);
     current_results = res;
+    pushUndo();
     renderTeams();
-  }catch(e){ showError(e.toString()); }
+  } catch(e){
+    showError(e.toString());
+  }
 }
+
 
 function resetEdits(){ banned_assignments = []; document.getElementById('generate').click(); }
 
