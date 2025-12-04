@@ -132,7 +132,8 @@ async function regenerateFromEdits() {
     edited_teams: edited,
     banned_assignments: banned_assignments.slice(),
     all_available_units: remaining_available,
-    must_use_units: last_must_use.slice()
+    must_use_units: last_must_use.slice(),
+    num_teams: edited.length 
   };
 
   console.log("REGENERATE PAYLOAD:", payload);
