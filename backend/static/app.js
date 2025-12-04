@@ -116,49 +116,36 @@ function moveUnit(unit, from, to){
   renderTeams();
 }
 
-async function regenerateFromEdits(){
+async function regenerateFromEdits() {
   clearError();
 
-  // CURRENT teams
-  const edited = current_results.map(x => Array.isArray(x.team) ? x.team.slice() : []);
+  // Extract current teams correctly (not objects)
+  const edited = current_results.map(obj => Array.isArray(obj.team) ? obj.team.slice() : []);
 
-  // original generated teams are stored in undo_stack[0]
-  const baseline = undo_stack.length ? undo_stack[0].results : [];
+  // Build available pool minus all currently placed units
+  const used = new Set();
+  edited.forEach(team => team.forEach(u => used.add(u)));
 
-  let banned = [];
+  const remaining_available = last_all_available_units.filter(u => !used.has(u));
 
-  // Compare baseline teams to current teams to detect removals & moves
-  baseline.forEach((baseTeam, teamIdx) => {
-    const original = baseTeam.team || [];
-    const current = edited[teamIdx] || [];
-
-    original.forEach(unit => {
-      if (!current.includes(unit)) {
-        // user removed or moved this unit ⇒ ban it from this team
-        banned.push({ unit, team: teamIdx });
-      }
-    });
-  });
-  const used = new Set(edited.flat());
-  const available = last_all_available_units.filter(u => !used.has(u));
-  
   const payload = {
     edited_teams: edited,
-    banned_assignments: banned,
-    all_available_units: available,
-    must_use_units: last_must_use.slice(),
-    num_teams: edited.length
+    banned_assignments: banned_assignments.slice(),
+    all_available_units: remaining_available,
+    must_use_units: last_must_use.slice()
   };
+
+  console.log("REGENERATE PAYLOAD:", payload);
 
   try {
     const res = await postJSON(API_BASE + '/regenerate', payload);
     current_results = res;
-    pushUndo();
     renderTeams();
-  } catch(e){
+  } catch(e) {
     showError(e.toString());
   }
 }
+
 
 
 function resetEdits(){ banned_assignments = []; document.getElementById('generate').click(); }
