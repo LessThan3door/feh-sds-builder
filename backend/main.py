@@ -175,95 +175,55 @@ def generate(req: GenerateRequest):
 
 @app.post("/regenerate")
 def regenerate(req: RegenerateRequest):
-    """Rebuild teams after manual edits"""
     try:
-        # --------------------------
-        # Load CSV
-        # --------------------------
-        csv_paths = []
-        if req.csv_filename:
-            csv_path = UPLOAD_DIR / req.csv_filename
-            if csv_path.exists():
-                csv_paths = [str(csv_path)]
+        # Resolve dataset
+        default_csv = BASE_DIR.parent / "dataset1.csv"
+        if not default_csv.exists():
+            raise RuntimeError("dataset1.csv missing")
 
-        if not csv_paths:
-            default_csv = BASE_DIR.parent / "dataset1.csv"
-            if not default_csv.exists():
-                raise RuntimeError("dataset1.csv not found")
-            csv_paths = [str(default_csv)]
-
+        # Init builder
         builder = FEHTeamBuilder(
-            csv_file_path=csv_paths,
-            priority_weights=[1.0] * len(csv_paths),
+            csv_file_path=[str(default_csv)],
+            priority_weights=[1.0],
             skip_header_rows=3
         )
 
-        # --------------------------
-        # 1. Collect removed units
-        # --------------------------
-        removed_units = set()
+        # ✅ Lock current units as seeds
+        seed_units = [list(team) for team in req.edited_teams]
+
+        # ✅ Only REMOVED units are exclusions
+        excluded_units_per_team = [[] for _ in seed_units]
         for ban in req.banned_assignments:
+            t = ban.get("team")
             u = ban.get("unit")
-            if u:
-                removed_units.add(u.strip().lower())
+            if t is not None and u:
+                excluded_units_per_team[t].append(u)
 
-        # --------------------------
-        # 2. Filter available pool
-        # --------------------------
-        available_units = [
-            u for u in req.all_available_units
-            if u.strip().lower() not in removed_units
-        ]
-
-        # --------------------------
-        # 3. Seeds from surviving units
-        # --------------------------
-        seed_units = []
-        for team in req.edited_teams:
-            cleaned = [
-                u for u in team
-                if u.strip().lower() not in removed_units
-            ]
-            seed_units.append(cleaned)
-
-        # --------------------------
-        # 4. Rebuild intelligently
-        # --------------------------
+        # ✅ Rebuild rhythm: ONLY fill remaining slots
         teams = builder.build_multiple_teams(
-            available_units=available_units,
-            num_teams=req.num_teams,
+            available_units=req.all_available_units,
+            num_teams=len(seed_units),
             team_size=5,
             seed_units_per_team=seed_units,
+            excluded_units_per_team=excluded_units_per_team,
             must_use_units=req.must_use_units or [],
-            unit_quality_weight=0.8,
-            excluded_units_per_team=[[] for _ in range(4)],
             fill_all_slots=True,
             debug=False
         )
 
-        # --------------------------
-        # 5. Format output cleanly
-        # --------------------------
+        # ✅ Output
         results = []
         for team in teams:
-            if isinstance(team, dict):
-                team_list = team["team"]
-            else:
-                team_list = team
-
-            captain = builder.choose_best_captain(team_list)
-            skill = builder.suggest_captain_skill(team_list)
-
             results.append({
-                "team": team_list,
-                "captain": captain,
-                "captain_skill": skill
+                "team": team,
+                "captain": team[0] if team else None,
+                "captain_skill": builder.suggest_captain_skill(team)
             })
 
         return results
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error regenerating teams: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 
