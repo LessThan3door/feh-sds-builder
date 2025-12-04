@@ -123,8 +123,20 @@ async function regenerateFromEdits(){
     if (x.team && Array.isArray(x.team.team)) return x.team.team.slice();
     return [];
   });
+  // LOCK moved units in their teams
+  const moved_bans = [];
+  edited.forEach((team, teamIdx) => {
+    team.forEach(unit => {
+      for (let other = 0; other < edited.length; other++) {
+        if (other !== teamIdx) {
+          moved_bans.push({ unit, team: other });
+        }
+      }
+    });
+  });
+
   const numTeams = current_results.length;
-  const payload = { edited_teams: edited, banned_assignments: banned_assignments.slice(), all_available_units: last_all_available_units.slice(), must_use_units: last_must_use.slice(), num_teams: numTeams };
+  const payload = { edited_teams: edited, banned_assignments: banned_assignments.concat(moved_bans), all_available_units: last_all_available_units.slice(), must_use_units: last_must_use.slice(), num_teams: numTeams };
   try{
     const res = await postJSON(API_BASE + '/regenerate', payload);
     current_results = res;
