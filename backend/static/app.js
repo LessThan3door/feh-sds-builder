@@ -123,7 +123,8 @@ async function regenerateFromEdits(){
     if (x.team && Array.isArray(x.team.team)) return x.team.team.slice();
     return [];
   });
-  const payload = { edited_teams: edited, banned_assignments: banned_assignments.slice(), all_available_units: last_all_available_units.slice(), must_use_units: last_must_use.slice() };
+  const numTeams = current_results.length;
+  const payload = { edited_teams: edited, banned_assignments: banned_assignments.slice(), all_available_units: last_all_available_units.slice(), must_use_units: last_must_use.slice(), num_teams: numTeams };
   try{
     const res = await postJSON(API_BASE + '/regenerate', payload);
     current_results = res;
@@ -143,7 +144,8 @@ document.getElementById('generate').addEventListener('click', async ()=>{
   if(available.length===0){ showError('Please provide available units'); return; }
   last_all_available_units = available.slice(); last_must_use = must_use.slice();
   try{
-    const res = await postJSON(API_BASE + '/generate', { available_units: available, seed_units: seed, must_use_units: must_use });
+    const numTeams = parseInt(document.getElementById('num_teams').value) || 4;
+    const res = await postJSON(API_BASE + '/generate', { available_units: available, seed_units: seed, must_use_units: must_use, num_teams: numTeams });
     current_results = res;
     undo_stack = []; pushUndo();
     renderTeams();
