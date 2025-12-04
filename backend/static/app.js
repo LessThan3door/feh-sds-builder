@@ -106,46 +106,44 @@ function removeUnit(unit, team){
 
 function moveUnit(unit, from, to){
   const fromArr = getTeamArray(current_results[from]);
-  const toArr = getTeamArray(current_results[to]);
+  const toArr   = getTeamArray(current_results[to]);
 
-  current_results[from].team = fromArr.filter(u=>u!==unit);
+  current_results[from].team = fromArr.filter(u => u!==unit);
+  if (!toArr.includes(unit)) toArr.push(unit);
 
-  if(!toArr.includes(unit))
-      current_results[to].team.push(unit);
+  // REMOVE any old bans for this unit
+  banned_assignments = banned_assignments.filter(b =>
+    !(b.unit === unit)
+  );
+
   renderTeams();
 }
 
 
-async function regenerateFromEdits() {
+
+async function regenerateFromEdits(){
   clearError();
 
-  // Extract current teams correctly (not objects)
-  const edited = current_results.map(obj => Array.isArray(obj.team) ? obj.team.slice() : []);
-
-  // Build available pool minus all currently placed units
-  const used = new Set();
-  edited.forEach(team => team.forEach(u => used.add(u)));
-
-  const remaining_available = last_all_available_units.filter(u => !used.has(u));
+  // Extract CURRENT teams as seeds (LOCKED)
+  const edited = current_results.map(obj => Array.isArray(obj.team) ? [...obj.team] : []);
 
   const payload = {
     edited_teams: edited,
     banned_assignments: banned_assignments.slice(),
-    all_available_units: remaining_available,
+    all_available_units: last_all_available_units.slice(),
     must_use_units: last_must_use.slice(),
-    num_teams: edited.length 
+    num_teams: edited.length
   };
-
-  console.log("REGENERATE PAYLOAD:", payload);
 
   try {
     const res = await postJSON(API_BASE + '/regenerate', payload);
     current_results = res;
     renderTeams();
-  } catch(e) {
+  } catch(e){
     showError(e.toString());
   }
 }
+
 
 
 
