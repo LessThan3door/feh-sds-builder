@@ -52,8 +52,8 @@ class FEHTeamBuilder:
             # Column positions (based on your sheet layout)
             UNIT_COL = df_roles.columns[0]     # Col A - Unit Name
             SUPPORT_COL = df_roles.columns[11] # Col L - Unit Support List
-            SCORE_COL = df_roles.columns[19]   # Col T - Point Value
-            TYPE_COL = df_roles.columns[20]    # Col U - Support Types
+            SCORE_COL = df_roles.columns[21]   # Col V - Point Value
+            TYPE_COL = df_roles.columns[22]    # Col W - Support Types
 
             # Create point → support-type mapping
             score_map = {}
