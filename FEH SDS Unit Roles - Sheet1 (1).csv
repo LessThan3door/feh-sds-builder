@@ -1,0 +1,101 @@
+Unit,Range,Frontliner,Initiator,Support Tally,Weighted Age,Usage rate,Type,Melee,Personal True Damage,Personal Flat DR,Support,Support Mechansim,Action Eco,Availability Weight,Availability,Version,Effective version,Months since release,Types of Support:,Support Weight,Support Value,Support,Uses Nov SDS
+Sakura Legendary,4,0,0,32,0.908,0.933,Flier,0,,,"FlatDR, TrueDamage, Warp, IceLock, Guidance, StatSwing",Both,0,2,Legendary,9.2,99,109,FlatDR,5,10,"Warp, Snare, BuffWipe",112
+Heimdallr Mythic,5,0,0,29,0.982,0.858,Cav,0,,,"Snare, Stall, ShadowSkill, StatSwing, SoTStatDebuff",Both,0,2,Mythic,9.10,107,,TrueDamage,4,9,"BuffSpread, Savior",103
+Alfador Mythic,4,0,0,32,0.991,0.808,Flier,0,,,"BuffSpread, StatSwing, TrueDamage, ShadowSkill, SoTStatDebuff, MidturnDebuff, MiscBuff(s)",Both,0,2,Mythic,9.11,108,,Warp,10,8,"Stall, 2RangeStyle",97
+Thorr Summer Duo,4,0,0,34,0.624,0.783,Flier,0,,,"BuffWipe, Stall, Guidance, ShadowSkill, SoTStatDebuff, MidturnDebuff",Drive,0.25,1,Seasonal,6.7,68,,IceLock,6,7,"Reflect, Feud, EndTurn, AntiSave, ActionEco",94
+Chrom Feroxi,4,0,1,36,0.972,0.767,Inf,0,,,"TrueDamage, BuffSpread, CControl, DeepWound, Canto, MidturnDebuff",Vis,1,1,Seasonal,9.9,106,,Stall,8,6,"IceLock, Miracle, Terrain, EssD, MovementBuff, ShadowSkill",92
+Byleth (M) Brave,6,1,1,7,0.963,0.758,Inf,0,,,"StatSwing, MiscBuff(s)",Vis,0,4,F2PSpark,9.8,105,,Snare,10,5,"FlatDR, Cleanse, Decoy, NullSpecial, TerrIgnore, Frozen, MidturnDebuff",91
+Camilla Young,6,0,1,7,0.927,0.750,Flier,1,,,"Terrain, SoTStatDebuff",NA,0,1,Seasonal,9.4,101,,BuffSpread,9,4,"TrueDamage, CControl, StatSwing, DC/CC, DeepWound",90
+Vali Mythic,4,1,1,14,0.991,0.750,Flier,0,,,"StatSwing, Miracle, DC/CC",Drive,0,2,Mythic,9.11,108,,BuffWipe,10,3,"Dull, MiscBuff(s), Canto, Guidance",90
+Celica Summer Harmonic,7,0,1,1,0.945,0.708,Cav,0,,,SoTStatDebuff,NA,0,1,Seasonal,9.6,103,,CControl,4,2,"NullEff, Galeforce, Paranoia, Pathfinder",85
+Freyja Halloween Duo,4,1,1,17,0.982,0.700,Inf,0,,,"DeepWound, StatSwing, StatSwing, CControl",Drive,0.25,1,Seasonal,9.10,107,,StatSwing,4,1,"NullPen, SoTStatDebuff, MiccyClean",84
+Lyn Mythic,5,0,1,20,0.972,0.683,Cav,1,,,"2RangeStyle, SoTStatDebuff, ShadowSkill, NullSpecial",Vis,0,2,Mythic,9.9,106,,Miracle,6,,,82
+Ingrid Teatime Harmonic,4,0,0,27,0.963,0.583,Cav,1,,,"MiscBuff(s), Reflect, ShadowSkill, StatSwing",Vis,1,1,Seasonal,9.8,105,,DC/CC,4,,,70
+Micaiah Emblem,4,0,0,21,0.945,0.575,Inf,0,,,"CControl, MidturnDebuff, Cleanse",NA,1,3,Emblem,9.6,103,,Cleanse,5,,,69
+Ryoma Attuned,5,1,1,7,0.972,0.567,Inf,0,,,"StatSwing, MiscBuff(s)",Vis,0,4,F2PSpark,9.9,106,,NullEff,2,,,68
+Marth Anniversary Duo,3,0,0,18,0.927,0.542,Flier,1,,,"FlatDR, NullEff, StatSwing, Guidance, MiscBuff(s)",Vis,0.25,2,Legendary,9.4,101,,Reflect,7,,,65
+Yunaka Ninja,6,0,1,9,0.991,0.517,Inf,0,,,"MidturnDebuff, SoTStatDebuff, MiscBuff(s)",NA,0,1,Seasonal,9.11,108,,Dull,3,,,62
+Veronica Teatime,5,0,1,26,0.963,0.483,Cav,0,,,"Feud, SoTStatDebuff, MidturnDebuff, ShadowSkill",NA,1,1,Seasonal,9.8,105,,NullPen,1,,,58
+Sigurd Emblem,6,0,1,6,0.862,0.475,Cav,1,,,MovementBuff,NA,0,3,Emblem,8.9,94,,MiscBuff(s),3,,,57
+Corrin (F) Emblem,2,0,0,23,0.972,0.450,Armor,1,,,"CControl, StatSwing, Terrain, Savior",Vis,0,3,Emblem,9.9,106,,Terrain,6,,,54
+Loki Mythic,4,0,0,21,0.817,0.417,Flier,0,,,"BuffWipe, NullPen, IceLock, StatSwing",Drive,0,2,Mythic,8.4,89,,Feud,7,,,50
+Plumeria Spring Harmonic,3,0,0,23,0.917,0.417,Flier,1,,,"MidturnDebuff, ShadowSkill, Frozen",Drive,1,1,Seasonal,9.3,100,,DeepWound,4,,,50
+Marth (Masked) Feroxi,3,0,0,26,0.972,0.400,Inf,1,,,"MiscBuff(s), CControl, Canto, MidturnDebuff, StatSwing",Vis,1,1,Seasonal,9.9,106,,Canto,3,,,48
+Black Knight Legendary,2,0,0,24,0.936,0.375,Armor,1,,,"FlatDR, Reflect, MiscBuff(s), Savior",Vis,0,2,Legendary,9.5,102,,EssD,6,,,45
+Eikthyrnir Brave,2,0,0,21,0.963,0.325,Armor,1,,,"StatSwing, MiscBuff(s), Decoy, Savior",Vis,0,4,F2PSpark,9.8,105,,Galeforce,2,,,39
+Heidrun New Year Duo,4,0,0,21,0.890,0.325,Inf,0,,,"FlatDR, MiscBuff(s), Terrain",Vis,1,1,Seasonal,9.0,97,,Decoy,5,,,39
+Lucina Ninja Duo,5,0,0,13,0.881,0.325,Cav,0,,,"Canto, MiscBuff(s)",Vis,1,1,Seasonal,8.11,96,,NullSpecial,5,,,39
+Hrid Ninja,4,0,0,11,0.991,0.242,Cav,1,,,"Frozen, Terrain",NA,0,1,Seasonal,9.11,108,,MovementBuff,6,,,29
+Nergal Fallen,4,0,0,10,0.826,0.242,Inf,0,,,"EssD, CControl",Vis,0,4,F2PSpark,8.5,90,,TerrIgnore,5,,,29
+Ash Entwined,3,0,0,22,0.972,0.183,Inf,1,,,"FlatDR, Reflect, MiscBuff(s), Guidance, StatSwing",Drive,0,4,F2PSpark,9.9,106,,2RangeStyle,8,,,22
+Elincia Duo,3,1,0,15,0.982,0.183,Inf,1,,,"Guidance, StatSwing, MiscBuff(s), Cleanse",Drive,0,4,F2PSpark,9.10,107,,Frozen,5,,,22
+Rhea Valentine's Duo,2,0,0,22,0.908,0.175,Armor,1,,,"Terrain, Miracle, Savior",Drive,0.25,1,Seasonal,9.2,99,,Paranoia,2,,,21
+Tharja Attuned,4,0,0,12,0.945,0.158,Flier,0,,,"MiscBuff(s), StatSwing, NullSpecial",Drive,0,4,F2PSpark,9.6,103,,Pathfinder,2,,,19
+Hapi Summer Duo,4,0,0,18,0.954,0.142,Flier,0,,,"Warp, MiscBuff(s), StatSwing",Drive,0.25,1,Seasonal,9.7,104,,EndTurn,7,,,17
+Sharena Entwined,4,0,0,5,0.982,0.142,Cav,1,,,"Galeforce, MiscBuff(s)",Drive,0,4,F2PSpark,9.10,107,,AntiSave,7,,,17
+Igrene Nabata Harmonic,4,0,0,12,0.789,0.125,Inf,0,,,"MovementBuff, TerrIgnore",Vis,0.25,1,Seasonal,8.1,86,,Guidance,3,,,15
+Shez (M) Legendary,6,0,1,10,0.853,0.108,Inf,0,,,Warp,NA,0,2,Legend,8.8,93,,SoTStatDebuff,1,,,13
+Hraesvelgr Mythic,3,0,1,10,0.872,0.100,Flier,1,,,"DeepWound, MovementBuff",Vis,0,2,Mythic,8.10,95,,MidturnDebuff,5,,,12
+Hinoka Rearmed,3,0,1,7,0.972,0.092,Flier,1,,,"MiscBuff(s), StatSwing",Drive,0,4,F2PSpark,9.9,106,,ShadowSkill,6,,,11
+Laeradr Mythic,2,0,0,17,0.881,0.092,Armor,1,,,"SoTStatDebuff, AntiSave, Savior",NA,0,2,Mythic,8.11,96,,MiccyClean,1,,,11
+Yunaka Aided,6,0,1,12,0.908,0.092,Inf,0,,,SoT Stat Debuff,NA,0,4,F2PSpark,9.2,99,,Savior,9,,,11
+Lyn Emblem,6,0,1,3,0.890,0.083,Inf,0,,,MiscBuff(s),Vis,0,3,Emblem,9.0,97,,ActionEco,7,,,10
+Baldr Brave,4,0,1,3,0.963,0.075,Flier,0,,,MiscBuff(s),Drive,0,4,F2PSpark,9.8,105,,,,,,9
+Diamant Legendary,3,1,0,3,0.963,0.075,Inf,1,,,MiscBuff(s),Vis,0,2,Legendary,9.8,105,,,,,,9
+Ninian Legendary,4,0,0,15,0.642,0.075,Cav,1,,,"MiscBuff(s), MidturnDebuff",Vis,1,2,Legendary,6.9,70,,,,,,9
+Elm Mythic,3,0,1,7,0.927,0.067,Flier,1,,,AntiSave,Drive,0,2,Mythic,9.4,101,,,,,,8
+Peony Halloween,4,0,0,17,0.982,0.067,Flier,0,,,"Reflect, MiscBuff(s)",Both,1,1,Seasonal,9.10,107,,,,,,8
+Sonia,4,0,0,10,0.486,0.058,Inf,0,,,"EssD, CControl",Vis,0,5,Grail,5.4,53,,,,,,7
+Alear (M) Fallen,3,1,0,8,0.936,0.050,Inf,1,,,"SoTStatDebuff, CControl, MiscBuff(s)",Vis,0,4,F2PSpark,9.5,102,,,,,,6
+Bernadetta Brave,5,0,0,2,0.853,0.050,Cav,0,,,Paranoia,Vis,0,4,F2PSpark,8.8,93,,,,,,6
+Chrom Brave,4,0,1,7,0.633,0.050,Cav,1,,,,NA,1,4,F2PSpark,6.8,69,,,,,,6
+Gromell,4,0,0,11,0.982,0.050,Flier,0,,,"True Damage, Guidance",Drive,0,5,Grail,9.10,107,,,,,,6
+Soren Rearmed,4,0,0,9,0.982,0.050,Inf,0,,,"MiscBuff(s), Decoy, SoTStatDebuff",Vis,0,4,F2PSpark,9.10,107,,,,,,6
+Ymir,4,0,0,5,0.624,0.050,Cav,1,,,Cleanse,NA,0,4,F2PSpark,6.7,68,,,,,,6
+Alm Attuned,4,0,1,13,0.917,0.042,Inf,0,,,Null Special,NA,0,4,F2PSpark,9.3,100,,,,,,5
+Dagr Aided,3,0,0,6,0.872,0.042,Inf,1,,,"CControl, Pathfinder",Vis,0,4,F2PSpark,8.10,95,,,,,,5
+Eirika Emblem,5,0,1,3,0.917,0.042,Cav,0,,,MiscBuff(s),Vis,0,3,Emblem,9.3,100,,,,,,5
+Micaiah Attuned,4,0,0,10,0.835,0.042,Inf,0,,,"MiccyClean, SoTStatDebuffs, Guidance, ShadowSkill",NA,0,4,F2PSpark,8.6,91,,,,,,5
+Tana New Year,3,0,0,10,0.890,0.042,Flier,1,,,Warp,NA,0,1,Seasonal,9.0,97,,,,,,5
+Edelgard Valentine's,2,1,1,6,0.908,0.033,Armor,1,,,"SoTStatDebuff, MidturnDebuff",NA,0,1,Seasonal,9.2,99,,,,,,4
+Elimine Mythic,4,0,0,14,0.569,0.033,Flier,0,,,"IceLock, MiscBuff(s), FlatDR",Drive,0,2,Mythic,6.1,62,,,,,,4
+Lif Valentine's Duo,5,0,0,7,0.468,0.033,Cav,0,,,"SoTStatDebuff, MidturnDebuff",NA,0.25,1,Seasonal,5.2,51,,,,,,4
+Robin (F) Brave,4,0,0,7,0.853,0.033,Inf,0,,,"SoTStatDebuff, Terrain",NA,0,4,F2PSpark,8.8,93,,,,,,4
+Seliph Groom,4,0,0,12,0.936,0.033,Cav,1,,,"MovementBuff, ShadowSkill",Vis,0,4,F2PSpark,9.5,102,,,,,,4
+Seteth,3,0,0,18,0.431,0.033,Flier,1,,,"ShadowSkill, Guidance, FlatDR, StatSwing",Drive,0,5,Grail,4.10,47,,,,,,4
+Alear (F) Fallen,3,0,0,3,0.936,0.025,Inf,1,,,MiscBuff(s),Vis,0,4,F2PSpark,9.5,102,,,,,,3
+Corrin (F) Brave,2,0,0,19,0.743,0.025,Armor,1,,,"Terrain, StatSwing, Savior",Vis,0,4,F2PSpark,7.8,81,,,,,,3
+Dedue Fallen Rearmed,2,0,0,11,0.936,0.025,Armor,1,,,Savior,NA,0,4,F2PSpark,9.5,102,,,,,,3
+Eitr Spring,3,1,0,8,0.917,0.025,Flier,1,,,"StatSwing, StatSwing",Drive,0,1,Seasonal,9.3,100,,,,,,3
+Heidrun Mythic,3,1,0,18,0.844,0.025,Inf,1,,,"FlatDR, MiscBuff(s), DeepWound",Vis,1,2,Mythic,8.7,92,,,,,,3
+Marisa Jehanna Harmonic,4,0,0,7,0.899,0.025,Cav,1,,,"MiscBuff(s), MiscBuff(s)",Drive,0.25,1,Seasonal,9.1,98,,,,,,3
+Morgan (F) Fallen,3,0,1,1,0.495,0.025,Flier,1,,,SoTStatDebuff,NA,0,4,F2PSpark,5.5,54,,,,,,3
+Noire Rearmed,4,0,0,13,0.945,0.025,Inf,0,,,"NullSpecial, StatSwing, TrueDamage",Drive,0,4,F2PSpark,9.6,103,,,,,,3
+Celica Emblem,6,0,1,0,0.835,0.017,Inf,0,,,,NA,0,3,Emblem,8.6,91,,,,,,2
+Gotoh Ancient,4,0,0,4,0.927,0.017,Inf,0,,,"MiscBuff(s), SoTStatDebuff",Vis,0,4,F2PSpark,9.4,101,,,,,,2
+Heidrun Summer,3,1,0,15,0.954,0.017,Inf,1,,,"FlatDR, MiscBuff(s)",Vis,1,1,Seasonal,9.7,104,,,,,,2
+Hilda Summer Duo,4,0,0,16,0.505,0.017,Flier,0,,,"IceLock, NullPen, Guidance, MidturnDebuff",Drive,0.25,1,Seasonal,5.6,55,,,,,,2
+Ike Jehanna,3,1,0,3,0.899,0.017,Inf,1,,,MiscBuff(s),NA,0,1,Seasonal,9.1,98,,,,,,2
+Linde Khadein Harmonic,5,0,0,6,0.679,0.017,Cav,0,,,TerrIgnore,Vis,0.25,1,Seasonal,7.1,74,,,,,,2
+Lucina Rearmed,4,0,0,15,0.780,0.017,Cav,1,,,"MiscBuff(s), MidturnDebuff",Vis,1,4,F2PSpark,8.0,85,,,,,,2
+Lyon Valentine's Duo,5,0,1,8,0.798,0.017,Cav,0,,,EndTurn,NA,0.25,1,Seasonal,8.2,87,,,,,,2
+Marianne Rearmed,4,0,0,12,0.872,0.017,Flier,0,,,MidturnDebuff,NA,1,4,F2PSpark,8.10,95,,,,,,2
+Naga Ancient,3,0,0,10,0.927,0.017,Flier,1,,,"Frozen, SoTStatDebuff, StatSwing",Drive,0,4,F2PSpark,9.4,101,,,,,,2
+Nagi Halloween Harmonic,2,0,0,10,0.872,0.017,Armor,1,,,Savior,NA,0.25,1,Seasonal,8.10,95,,,,,,2
+Nah Halloween,2,0,0,9,0.872,0.017,Armor,1,,,Savior,NA,0,1,Seasonal,8.10,95,,,,,,2
+Nino Summer,4,0,1,8,0.945,0.017,Inf,0,,,"AntiSave, SoTStatDebuff",NA,0,1,Seasonal,9.6,103,,,,,,2
+Peony Attuned,3,0,0,13,0.761,0.017,Flier,1,,,"SoTStatDebuff, MidturnDebuff",Drive,1,4,F2PSpark,7.10,83,,,,,,2
+Ranulf Halloween,4,0,0,9,0.982,0.017,Cav,1,,,"StatSwing, FlatDR",Drive,0,5,Grail,9.10,107,,,,,,2
+Robin (M) Brave,3,1,0,0,0.743,0.017,Inf,1,,,,NA,0,4,F2PSpark,7.8,81,,,,,,2
+Tiki (Y) Ancient Attuned,3,1,0,0,0.927,0.017,Inf,1,,,,Drive,0,4,F2PSpark,9.4,101,,,,,,2
+Triandra Attuned,3,0,0,13,0.761,0.017,Flier,1,,,"SoTStatDebuff, MidturnDebuff",Drive,1,4,F2PSpark,7.10,83,,,,,,2
+Veyle Spring,5,0,0,7,0.917,0.017,Cav,0,,,"StatSwing, MiscBuff(s)",Drive,0,1,Seasonal,9.3,100,,,,,,2
+Zeke,5,0,0,0,0.505,0.017,Cav,0,,,,NA,0,4,F2PSpark,5.6,55,,,,,,2
+Ike Brave Harmonic,4,1,0,19,0.991,,Inf,1,,,"FlatDR, DC/CC, Dull, StatSwing",Vis,0.5,4,F2PSpark,9.11,108,,,,,,
+Lyn Brave Harmonic,7,0,1,20,0.991,,Cav,0,,,"TrueDamage, MiscBuff(s), StatSwing, ShadowSkill",Drive,0.5,4,F2PSpark,9.11,108,,,,,,
+Vanitas,2,0,0,17,0.991,,Armor,1,,,"Savior, MiscBuff(s), Terrain",NA,0,4,F2PSpark,9.11,108,,,,,,
+Alfonse Chosen,5,1,0,13,1.000,,Inf,1,,,"MiscBuff(s), Terrain, StatSwing",Vis,0,4,F2PSpark,10.0,109,,,,,,
+Ivy Harmonic Winter,4,0,1,15,1.000,,Flier,0,,,"MiscBuff(s), Terrain, StatSwing",Both,0.25,1,Seasonal,10.0,109,,,,,,
+Alfred Winter,2,0,0,16,1.000,,Armor,1,,,"MiscBuff(s), StatSwing, Savior",Both,0,1,Seasonal,10.0,109,,,,,,
+Seidr Winter,5,0,1,20,1.000,,Cav,0,,,"EndTurn, SoTStatDebuff, MidturnDebuff",Drive,1,1,Seasonal,10.0,109,,,,,,
+Gatekeeper Winter,3,0,0,15,1.000,,Armor,0,,,"StatSwing, Savior, Galeforce",Drive,0,1,Seasonal,10.0,109,,,,,,
