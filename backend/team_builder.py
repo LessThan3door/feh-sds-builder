@@ -71,8 +71,8 @@ class FEHTeamBuilder:
 
                 score_map.setdefault(score, set()).update(traits)
 
-            # Store only high-value supports (>=8)
-            for k in (8, 9, 10):
+            # Store only high-value supports (>=7)
+            for k in (7, 8, 9, 10):
                 self.restricted_support_types.update(score_map.get(k, set()))
 
             # Map each unit → relevant restricted supports
