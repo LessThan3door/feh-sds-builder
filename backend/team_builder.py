@@ -99,6 +99,13 @@ class FEHTeamBuilder:
         if self.datasets:
             self._calculate_correlations()
         
+    def team_has_snare_or_savior(self, team):
+        for unit in team:
+            roles = self.unit_support_roles.get(unit, set())
+            if "Snare" in roles or "Savior" in roles:
+                return True
+        return False
+
     def _calculate_correlations(self):
         """Calculate unit co-occurrence statistics across all datasets."""
         # Track how often each unit appears as captain (historical data)
@@ -202,7 +209,7 @@ class FEHTeamBuilder:
     def build_multiple_teams(self, available_units, num_teams=4, team_size=5,
                             seed_units_per_team=None, forbidden_pairs=None, 
                             required_pairs=None, must_use_units=None,
-                            unit_quality_weight=0.3, excluded_units_per_team=None,
+                            unit_quality_weight=0.5, excluded_units_per_team=None,
                             debug=False, required_pairs_per_team=None, 
                             required_units_per_team=None, fill_all_slots=True,
                             return_debug_log=False):
@@ -342,6 +349,14 @@ class FEHTeamBuilder:
                 for team_idx in range(num_teams):
                     if len(teams[team_idx]) >= team_size:
                         continue
+                    
+                    # === Snare / Savior requirement for final slot ===
+                    if len(teams[team_idx]) == team_size - 1:
+                        if not self.team_has_snare_or_savior(teams[team_idx]):
+                            roles = self.unit_support_roles.get(unit, set())
+                            if "Snare" not in roles and "Savior" not in roles:
+                                continue
+
                     
                     if unit in excluded_units_per_team[team_idx]:
                         continue
