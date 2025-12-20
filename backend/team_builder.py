@@ -353,10 +353,20 @@ class FEHTeamBuilder:
                     # === Snare / Savior requirement for final slot ===
                     if len(teams[team_idx]) == team_size - 1:
                         if not self.team_has_snare_or_savior(teams[team_idx]):
-                            roles = self.unit_support_roles.get(unit, set())
-                            if "Snare" not in roles and "Savior" not in roles:
-                                continue
+                        # Check if ANY remaining unit can satisfy the requirement
+                            any_valid = False
+                            for u in remaining_units:
+                                roles = self.unit_support_roles.get(u, set())
+                                if "Snare" in roles or "Savior" in roles:
+                                    any_valid = True
+                                    break
 
+                            # If a valid Snare/Savior unit exists, enforce it
+                            if any_valid:
+                                roles = self.unit_support_roles.get(unit, set())
+                                if "Snare" not in roles and "Savior" not in roles:
+                                    continue
+                        # Else: no valid unit exists → allow fallback
                     
                     if unit in excluded_units_per_team[team_idx]:
                         continue
